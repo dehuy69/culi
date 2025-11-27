@@ -1,0 +1,2 @@
+"""KiotViet app adapter implementation."""
+
