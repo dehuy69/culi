@@ -200,7 +200,25 @@ class ChatService:
                 }
             }
             
+        except ValueError as e:
+            # Re-raise ValueError (e.g., missing API key) with clear message
+            logger.error(f"Configuration error: {str(e)}", exc_info=True)
+            raise ValueError(f"Configuration error: {str(e)}")
         except Exception as e:
             logger.error(f"Error processing message: {str(e)}", exc_info=True)
-            raise Exception(f"Failed to process message: {str(e)}")
+            # Provide more user-friendly error message
+            error_msg = str(e)
+            
+            # Handle specific error cases
+            if "api_key" in error_msg.lower() or "OPENAI_API_KEY" in error_msg:
+                error_msg = "API key chưa được cấu hình. Vui lòng kiểm tra OPENROUTER_API_KEY trong file .env"
+            elif "402" in error_msg or "credits" in error_msg.lower() or "max_tokens" in error_msg.lower():
+                error_msg = (
+                    "OpenRouter API key của bạn không đủ credits để xử lý request này. "
+                    "Vui lòng: 1) Tăng monthly limit tại https://openrouter.ai/settings/keys, "
+                    "hoặc 2) Giảm độ dài câu hỏi. "
+                    f"Chi tiết: {error_msg}"
+                )
+            
+            raise Exception(f"Failed to process message: {error_msg}")
 

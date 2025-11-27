@@ -19,6 +19,7 @@ class Settings(BaseSettings):
     openrouter_base_url: str = "https://openrouter.ai/api/v1"
     llm_model: str = "openai/gpt-4-turbo-preview"
     llm_temperature: float = 0.7
+    llm_max_tokens: int = 1000  # Limit max tokens to avoid 402 errors
 
     # Google Custom Search Configuration
     google_search_api_key: str = ""
