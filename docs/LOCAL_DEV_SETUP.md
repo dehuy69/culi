@@ -24,12 +24,15 @@
    docker-compose -f docker-compose-local-dev.yml up -d
    ```
 
-3. **Run migrations:**
+3. **Setup database schema:**
    ```bash
-   make migrate
-   # or
+   # Migrations are not included in repository - generate first
+   alembic revision --autogenerate -m "Initial migration"
+   # Then apply
    alembic upgrade head
    ```
+   
+   **Note:** Migrations are managed separately in production. See [MIGRATIONS.md](../MIGRATIONS.md) for details.
 
 4. **Start development server:**
    ```bash
@@ -112,10 +115,13 @@ make pgadmin
 
 ### Create Migration
 
+**Note:** Migration files are excluded from repository. Generated migrations are for local development only.
+
 ```bash
-make migrate-create MESSAGE="your migration description"
-# or
 alembic revision --autogenerate -m "your migration description"
+# Review generated file in migrations/versions/
+# Apply migration
+alembic upgrade head
 ```
 
 ### Reset Database
@@ -189,9 +195,11 @@ make clean          # Clean Docker resources
 
 6. **Create migration if needed:**
    ```bash
-   make migrate-create MESSAGE="add new field"
-   make migrate
+   alembic revision --autogenerate -m "add new field"
+   alembic upgrade head
    ```
+   
+   **Note:** Migration files are not committed to repository.
 
 ## Troubleshooting
 

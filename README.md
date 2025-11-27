@@ -39,8 +39,13 @@ Xem hướng dẫn đầy đủ tại: **[local_dev/README.md](local_dev/README.
 4. **Setup database schema:**
    ```bash
    cd ..
+   # Tạo migration đầu tiên (migrations không có trong repo)
+   alembic revision --autogenerate -m "Initial migration"
+   # Apply migration
    alembic upgrade head
    ```
+   
+   **Note:** Migrations are managed separately in production. For local development, generate them from SQLAlchemy models.
 
 5. **Start application (local terminal):**
    ```bash
@@ -71,8 +76,10 @@ source venv/bin/activate                    # Activate venv
 uvicorn app.main:app --reload               # Start server (hot reload)
 
 # Database
-alembic upgrade head                        # Run migrations
-alembic revision --autogenerate -m "desc"   # Create migration
+alembic revision --autogenerate -m "desc"   # Create migration (for local dev)
+alembic upgrade head                        # Apply migrations
+
+# Note: Migrations are not included in repository
 
 # Testing
 pytest                                      # Run tests

@@ -19,7 +19,7 @@ class Message(BaseModel):
     conversation_id = Column(Integer, ForeignKey("conversations.id"), nullable=False, index=True)
     sender = Column(SQLEnum(MessageSender), nullable=False)
     content = Column(Text, nullable=False)
-    metadata = Column(JSON, nullable=True)  # Additional metadata (tool calls, reasoning, etc.)
+    message_metadata = Column(JSON, nullable=True)  # Additional metadata (tool calls, reasoning, etc.)
     
     # Relationships
     conversation = relationship("Conversation", backref="messages")

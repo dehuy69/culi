@@ -44,8 +44,12 @@ logs/
 *.db
 *.sqlite
 
-# Alembic
+# Alembic / Database Migrations
+# Migration files are excluded from open source repository
+# Migrations should be managed separately in production deployments
+migrations/versions/*.py
 migrations/versions/*.pyc
+!migrations/versions/.gitkeep
 
 # OS
 .DS_Store

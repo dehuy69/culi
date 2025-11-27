@@ -42,7 +42,7 @@ class MessageRepository:
             conversation_id=conversation_id,
             sender=sender,
             content=content,
-            metadata=metadata
+            message_metadata=metadata
         )
         db.add(message)
         db.commit()

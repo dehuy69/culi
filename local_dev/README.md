@@ -159,6 +159,8 @@ postgres:5432 - accepting connections
 
 ### Bước 5: Setup Database Schema
 
+**⚠️ Lưu ý:** Migrations không được include trong open source repository. Bạn cần tự tạo migration cho local development.
+
 ```bash
 # Quay về root directory
 cd ..
@@ -167,12 +169,19 @@ cd ..
 source venv/bin/activate  # Linux/Mac
 # hoặc: venv\Scripts\activate  # Windows
 
-# Chạy migrations để tạo database schema
+# Tạo migration đầu tiên từ SQLAlchemy models
+alembic revision --autogenerate -m "Initial migration with all models"
+
+# Review migration file trong migrations/versions/ (nếu cần)
+
+# Apply migration để tạo database schema
 alembic upgrade head
 
 # Kiểm tra kết quả
 # Nếu thành công, sẽ thấy các bảng được tạo
 ```
+
+**Note:** Migration files được tạo sẽ không được commit vào repository (đã được ignore trong .gitignore).
 
 **Verify database:**
 

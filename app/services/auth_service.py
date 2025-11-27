@@ -22,8 +22,13 @@ class AuthService:
         if UserRepository.exists(db, user_data.username):
             raise ValueError("Username already exists")
         
+        # Ensure password is a string and validate length
+        password = str(user_data.password) if user_data.password else ""
+        if len(password.encode('utf-8')) > 72:
+            raise ValueError("Password is too long (maximum 72 bytes)")
+        
         # Hash password
-        password_hash = get_password_hash(user_data.password)
+        password_hash = get_password_hash(password)
         
         # Create user
         user = UserRepository.create(db, user_data.username, password_hash)

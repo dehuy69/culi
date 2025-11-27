@@ -1,7 +1,7 @@
 """Intent router node for classifying user intent based on connected app."""
 from typing import Dict, Any
 import json
-from langchain.prompts import ChatPromptTemplate
+from langchain_core.prompts import ChatPromptTemplate
 from app.core.llm_config import get_llm
 from app.core.logging import get_logger
 from pathlib import Path

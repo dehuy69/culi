@@ -34,12 +34,13 @@ app.include_router(app_connection_router.router, prefix="/api/v1")  # DEPRECATED
 app.include_router(connected_app_router.router, prefix="/api/v1")  # NEW: connected apps API
 
 
+# Import domain apps to register adapters
+from app.domain.apps import *  # noqa: F401, F403
+
 @app.on_event("startup")
 async def startup_event():
     """Application startup event."""
     from app.core.logging import get_logger
-    # Import domain apps to register adapters
-    from app.domain.apps import *  # noqa: F401, F403
     logger = get_logger(__name__)
     logger.info(f"Starting {settings.app_name} v{settings.app_version}")
 

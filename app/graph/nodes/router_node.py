@@ -1,8 +1,8 @@
 """Router node for intent classification."""
 from typing import Dict, Any
 import json
-from langchain.prompts import ChatPromptTemplate
-from langchain.output_parsers import PydanticOutputParser
+from langchain_core.prompts import ChatPromptTemplate
+from langchain_core.output_parsers import PydanticOutputParser
 from pydantic import BaseModel, Field
 from app.core.llm_config import get_llm
 from app.core.logging import get_logger

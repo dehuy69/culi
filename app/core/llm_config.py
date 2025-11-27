@@ -17,15 +17,24 @@ def get_llm(temperature: Optional[float] = None) -> ChatOpenAI:
     Returns:
         Configured ChatOpenAI instance
     """
-    return ChatOpenAI(
-        model=settings.llm_model,
-        temperature=temperature or settings.llm_temperature,
-        openai_api_key=settings.openrouter_api_key,
-        openai_api_base=settings.openrouter_base_url,
-        headers={
+    # For OpenRouter, we need to pass headers via default_headers parameter
+    # or use the client parameter with a pre-configured OpenAI client
+    from openai import OpenAI
+    
+    # Create OpenAI client with headers for OpenRouter
+    client = OpenAI(
+        api_key=settings.openrouter_api_key,
+        base_url=settings.openrouter_base_url,
+        default_headers={
             "HTTP-Referer": "https://github.com/culi-ai/culi-backend",
             "X-Title": "Culi Backend",
         },
+    )
+    
+    return ChatOpenAI(
+        model=settings.llm_model,
+        temperature=temperature or settings.llm_temperature,
+        client=client,
     )
 
 

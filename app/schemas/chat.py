@@ -17,11 +17,12 @@ class ChatMessage(BaseModel):
     conversation_id: int
     sender: MessageSender
     content: str
-    metadata: Optional[Dict[str, Any]] = None
+    metadata: Optional[Dict[str, Any]] = Field(None, alias="message_metadata")
     created_at: datetime
 
     class Config:
         from_attributes = True
+        populate_by_name = True  # Allow both alias and field name
 
 
 class StreamEvent(BaseModel):
