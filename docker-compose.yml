@@ -1,4 +1,12 @@
-version: '3.8'
+# Docker Compose for Culi Backend
+#
+# NOTE: This file is for running backend + dependencies in Docker (alternative workflow).
+# For the recommended hybrid approach (dependencies in Docker, app runs locally),
+# see: local_dev/docker-compose.yml and local_dev/README.md
+#
+# Usage:
+#   - Hybrid approach (recommended): Use local_dev/docker-compose.yml for dependencies only
+#   - Full Docker: Use this file to run everything in Docker
 
 services:
   backend:
@@ -16,6 +24,7 @@ services:
     depends_on:
       postgres:
         condition: service_healthy
+      # Redis is optional (with profile), so not listed here as dependency
     networks:
       - culi-network
     env_file:
@@ -40,8 +49,28 @@ services:
     networks:
       - culi-network
 
+  redis:
+    image: redis:7-alpine
+    container_name: culi-redis-dev
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    command: redis-server --appendonly yes
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 5
+    networks:
+      - culi-network
+    profiles:
+      - optional  # Optional: For caching (OAuth tokens, API responses) and rate limiting in the future. Currently code does not use Redis.
+
 volumes:
   postgres_data:
+    driver: local
+  redis_data:
     driver: local
 
 networks:
