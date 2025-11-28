@@ -6,6 +6,16 @@ AI kế toán cho hộ kinh doanh Việt Nam, kết nối với các ứng dụn
 
 **Ngôn ngữ**: [English](README_en.md) | [Tiếng Việt](README.md)
 
+## 🌐 Live Demo
+
+**Trải nghiệm Culi ngay bây giờ**: [https://culi.ddns.net/](https://culi.ddns.net/)
+
+Demo này cho phép bạn:
+- 💬 Chat với AI agent về kế toán và thuế
+- 🔌 Kết nối với các ứng dụng quản lý bán hàng (KiotViet, Misa eShop, ...)
+- 📊 Xem và quản lý dữ liệu từ các ứng dụng đã kết nối
+- ⚙️ Quản lý workspaces và cài đặt
+
 ## 📖 Tổng quan
 
 Culi Backend là một AI agent hỗ trợ kế toán cho các hộ kinh doanh nhỏ tại Việt Nam. Hệ thống kết nối với các ứng dụng bên ngoài (như KiotViet, Misa eShop, v.v.) để đọc dữ liệu, tạo báo cáo, và thực hiện các thao tác tự động.
@@ -238,6 +248,7 @@ Xem file `.env.example` để biết đầy đủ các biến môi trường.
 
 ## 🔗 Links
 
+- **🌐 Live Demo**: [https://culi.ddns.net/](https://culi.ddns.net/)
 - **API Documentation**: http://localhost:8000/docs (khi server đang chạy)
 - **Architecture Docs**: [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md)
 - **Local Setup Guide**: [local_dev/README.md](local_dev/README.md)

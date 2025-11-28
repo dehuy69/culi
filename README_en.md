@@ -6,6 +6,16 @@ AI accounting assistant for Vietnamese small businesses, connecting with sales m
 
 **Language**: [English](README_en.md) | [Tiếng Việt](README.md)
 
+## 🌐 Live Demo
+
+**Try Culi now**: [https://culi.ddns.net/](https://culi.ddns.net/)
+
+This demo allows you to:
+- 💬 Chat with AI agent about accounting and tax
+- 🔌 Connect with sales management applications (KiotViet, Misa eShop, ...)
+- 📊 View and manage data from connected applications
+- ⚙️ Manage workspaces and settings
+
 ## 📖 Overview
 
 Culi Backend is an AI agent that assists with accounting for small businesses in Vietnam. The system connects with external applications (such as KiotViet, Misa eShop, etc.) to read data, generate reports, and perform automated operations.
@@ -242,6 +252,7 @@ See `.env.example` file for all environment variables.
 
 ## 🔗 Links
 
+- **🌐 Live Demo**: [https://culi.ddns.net/](https://culi.ddns.net/)
 - **API Documentation**: http://localhost:8000/docs (when server is running)
 - **Architecture Docs**: [docs/ARCHITECTURE_en.md](docs/ARCHITECTURE_en.md)
 - **Local Setup Guide**: [local_dev/README_en.md](local_dev/README_en.md)
