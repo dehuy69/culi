@@ -120,4 +120,3 @@ This ensures that:
 - **Privacy:** Migration files might contain sensitive data structures
 - **Version Control:** Allows each deployment to track migrations independently
 - **Open Source:** Keeps repository clean and focused on application code
-

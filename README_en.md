@@ -1,32 +1,32 @@
 # Culi Backend
 
-AI kế toán cho hộ kinh doanh Việt Nam, kết nối với các ứng dụng quản lý bán hàng và kế toán.
+AI accounting assistant for Vietnamese small businesses, connecting with sales management and accounting applications.
 
 ![Culi Web Interface](docs/web-interface-screenshot.png)
 
-**Ngôn ngữ**: [English](README_en.md) | [Tiếng Việt](README.md)
+**Language**: [English](README_en.md) | [Tiếng Việt](README.md)
 
-## 📖 Tổng quan
+## 📖 Overview
 
-Culi Backend là một AI agent hỗ trợ kế toán cho các hộ kinh doanh nhỏ tại Việt Nam. Hệ thống kết nối với các ứng dụng bên ngoài (như KiotViet, Misa eShop, v.v.) để đọc dữ liệu, tạo báo cáo, và thực hiện các thao tác tự động.
+Culi Backend is an AI agent that assists with accounting for small businesses in Vietnam. The system connects with external applications (such as KiotViet, Misa eShop, etc.) to read data, generate reports, and perform automated operations.
 
-### Tính năng chính
+### Key Features
 
-- 🤖 **AI Assistant**: Trả lời câu hỏi về kế toán, thuế, quản lý bán hàng
-- 🔌 **Kết nối ứng dụng**: Hỗ trợ kết nối với các ứng dụng quản lý bán hàng và kế toán
-- 📊 **Đọc dữ liệu**: Lấy danh sách sản phẩm, hóa đơn, báo cáo từ các ứng dụng đã kết nối
-- 🎯 **Lập kế hoạch & thực thi**: Tạo và thực thi kế hoạch phức tạp để thao tác trên ứng dụng
-- 🌐 **Tìm kiếm web**: Tìm kiếm thông tin về thuế, quy định pháp luật
+- 🤖 **AI Assistant**: Answers questions about accounting, taxes, and sales management
+- 🔌 **App Connections**: Supports connections with sales management and accounting applications
+- 📊 **Data Reading**: Retrieves product lists, invoices, reports from connected applications
+- 🎯 **Planning & Execution**: Creates and executes complex plans to operate on applications
+- 🌐 **Web Search**: Searches for information about taxes and regulations
 
 ## 🚀 Quick Start
 
-### Yêu cầu
+### Requirements
 
 - Python 3.10+
 - Docker & Docker Compose
 - Git
 
-### Cài đặt nhanh
+### Quick Installation
 
 1. **Clone repository:**
    ```bash
@@ -34,21 +34,21 @@ Culi Backend là một AI agent hỗ trợ kế toán cho các hộ kinh doanh n
    cd culi
    ```
 
-2. **Setup môi trường:**
+2. **Setup environment:**
    ```bash
-   # Tạo virtual environment
+   # Create virtual environment
    python3 -m venv venv
    source venv/bin/activate  # Linux/Mac
-   # hoặc: venv\Scripts\activate  # Windows
+   # or: venv\Scripts\activate  # Windows
 
-   # Cài đặt dependencies
+   # Install dependencies
    pip install -r requirements.txt
    ```
 
-3. **Cấu hình environment:**
+3. **Configure environment:**
    ```bash
    cp .env.example .env
-   # Chỉnh sửa .env với API keys của bạn
+   # Edit .env with your API keys
    ```
 
 4. **Start dependencies:**
@@ -60,7 +60,7 @@ Culi Backend là một AI agent hỗ trợ kế toán cho các hộ kinh doanh n
 
 5. **Setup database:**
    ```bash
-   # Tạo migration đầu tiên
+   # Create initial migration
    alembic revision --autogenerate -m "Initial migration"
    
    # Apply migration
@@ -72,27 +72,27 @@ Culi Backend là một AI agent hỗ trợ kế toán cho các hộ kinh doanh n
    uvicorn app.main:app --reload --port 8000
    ```
 
-Server sẽ chạy tại: http://localhost:8000  
+Server will run at: http://localhost:8000  
 API Documentation: http://localhost:8000/docs
 
-### 📚 Hướng dẫn chi tiết
+### 📚 Detailed Guides
 
-- **[Local Development Setup](local_dev/README.md)** - Hướng dẫn setup và phát triển chi tiết từng bước | [English](local_dev/README_en.md)
-- **[Architecture Documentation](docs/ARCHITECTURE.md)** - Thiết kế hệ thống, LangGraph, adapter pattern | [English](docs/ARCHITECTURE_en.md)
-- **[Database Migrations](migrations/README.md)** - Quản lý database migrations | [English](migrations/README_en.md)
+- **[Local Development Setup](local_dev/README_en.md)** - Step-by-step setup and development guide
+- **[Architecture Documentation](docs/ARCHITECTURE_en.md)** - System design, LangGraph, adapter pattern
+- **[Database Migrations](migrations/README_en.md)** - Database migration management
 
-## 🏗️ Kiến trúc
+## 🏗️ Architecture
 
 ### Tech Stack
 
 - **FastAPI** - Web framework
-- **SQLAlchemy + Alembic** - ORM và database migrations
+- **SQLAlchemy + Alembic** - ORM and database migrations
 - **PostgreSQL** - Database
 - **LangChain + LangGraph** - AI agent orchestration
 - **OpenRouter** - LLM provider (GPT-4, Llama, etc.)
 - **Google Custom Search API** - Web search
 
-### Kiến trúc tổng quan
+### Overall Architecture
 
 ```
 ┌─────────────────┐
@@ -112,12 +112,12 @@ API Documentation: http://localhost:8000/docs
 
 ### LangGraph Workflow
 
-Hệ thống sử dụng LangGraph để quản lý workflow xử lý câu hỏi:
+The system uses LangGraph to manage the workflow for processing user questions:
 
 ```
 User Input
     ↓
-Intent Router (phân loại intent)
+Intent Router (classify intent)
     ↓
 ┌─────────────────────────────────────┐
 │ general_qa → Context → Answer       │
@@ -127,19 +127,19 @@ Intent Router (phân loại intent)
 └─────────────────────────────────────┘
 ```
 
-Xem chi tiết tại: **[docs/ARCHITECTURE.md](docs/ARCHITECTURE.md)**
+See details at: **[docs/ARCHITECTURE_en.md](docs/ARCHITECTURE_en.md)**
 
 ### Adapter Pattern
 
-Hệ thống sử dụng adapter pattern để hỗ trợ nhiều loại ứng dụng:
+The system uses the adapter pattern to support multiple types of applications:
 
-- **Supported Apps** (API): KiotViet, Misa eShop, v.v. - có source code riêng
+- **Supported Apps** (API): KiotViet, Misa eShop, etc. - have their own source code
 - **Custom Apps** (MCP): Model Context Protocol servers - generic integration
 - **App Categories**: POS_SIMPLE, ACCOUNTING, UNKNOWN
 
-Xem chi tiết tại: **[docs/ARCHITECTURE.md](docs/ARCHITECTURE.md#adapter-pattern)**
+See details at: **[docs/ARCHITECTURE_en.md](docs/ARCHITECTURE_en.md#adapter-pattern)**
 
-## 📁 Cấu trúc Project
+## 📁 Project Structure
 
 ```
 culi/
@@ -162,29 +162,33 @@ culi/
 │   ├── services/             # Business logic
 │   └── utils/                # Utilities
 ├── docs/                     # Documentation
-│   ├── ARCHITECTURE.md       # Architecture documentation
+│   ├── ARCHITECTURE.md       # Architecture documentation (Vietnamese)
+│   ├── ARCHITECTURE_en.md    # Architecture documentation (English)
 │   ├── langgraph_chart.mmd   # LangGraph visualization
 │   └── web-interface-screenshot.png  # Web interface screenshot
 ├── local_dev/                # Local development
 │   ├── docker-compose.yml    # Docker services
-│   └── README.md             # Local setup guide
+│   ├── README.md             # Local setup guide (Vietnamese)
+│   └── README_en.md          # Local setup guide (English)
 ├── migrations/               # Database migrations
-│   └── README.md             # Migration policy
+│   ├── README.md             # Migration policy (Vietnamese)
+│   └── README_en.md          # Migration policy (English)
 ├── scripts/                  # Utility scripts
 ├── tests/                    # Tests
 ├── requirements.txt          # Python dependencies
-└── README.md                 # This file
+├── README.md                 # This file (Vietnamese)
+└── README_en.md              # This file (English)
 ```
 
 ## 🔧 Development
 
 ### Local Development Workflow
 
-Hệ thống sử dụng **hybrid approach**:
-- **Dependencies** (PostgreSQL, Redis) chạy trong Docker
-- **Application code** chạy trực tiếp trên máy local (hot reload)
+The system uses a **hybrid approach**:
+- **Dependencies** (PostgreSQL, Redis) run in Docker
+- **Application code** runs directly on local machine (hot reload)
 
-Xem hướng dẫn chi tiết: **[local_dev/README.md](local_dev/README.md)**
+See detailed guide: **[local_dev/README_en.md](local_dev/README_en.md)**
 
 ### Common Commands
 
@@ -207,30 +211,30 @@ ruff check app/ tests/
 
 ## 📝 Database Migrations
 
-Migrations **không được include** trong open source repository. Mỗi deployment sẽ tự quản lý migrations.
+Migrations are **NOT included** in the open source repository. Each deployment manages migrations independently.
 
-Xem chi tiết: **[migrations/README.md](migrations/README.md)**
+See details: **[migrations/README_en.md](migrations/README_en.md)**
 
 ## 🔐 Environment Variables
 
-Các biến môi trường quan trọng:
+Important environment variables:
 
 - `DATABASE_URL` - PostgreSQL connection string
-- `SECRET_KEY` - JWT secret key (tối thiểu 32 ký tự)
+- `SECRET_KEY` - JWT secret key (minimum 32 characters)
 - `OPENROUTER_API_KEY` - OpenRouter API key (required)
-- `ENCRYPTION_KEY` - Fernet key để encrypt sensitive data (generate bằng `scripts/generate_encryption_key.py`)
+- `ENCRYPTION_KEY` - Fernet key to encrypt sensitive data (generate with `scripts/generate_encryption_key.py`)
 - `GOOGLE_SEARCH_API_KEY` - Google Custom Search API key (optional)
 - `GOOGLE_SEARCH_CX` - Google Custom Search Engine ID (optional)
 
-Xem file `.env.example` để biết đầy đủ các biến môi trường.
+See `.env.example` file for all environment variables.
 
 ## 🤝 Contributing
 
 1. Fork repository
-2. Tạo feature branch (`git checkout -b feature/amazing-feature`)
+2. Create feature branch (`git checkout -b feature/amazing-feature`)
 3. Commit changes (`git commit -m 'Add amazing feature'`)
 4. Push to branch (`git push origin feature/amazing-feature`)
-5. Tạo Pull Request
+5. Create Pull Request
 
 ## 📄 License
 
@@ -238,16 +242,17 @@ Xem file `.env.example` để biết đầy đủ các biến môi trường.
 
 ## 🔗 Links
 
-- **API Documentation**: http://localhost:8000/docs (khi server đang chạy)
-- **Architecture Docs**: [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md)
-- **Local Setup Guide**: [local_dev/README.md](local_dev/README.md)
-- **Migration Policy**: [migrations/README.md](migrations/README.md)
+- **API Documentation**: http://localhost:8000/docs (when server is running)
+- **Architecture Docs**: [docs/ARCHITECTURE_en.md](docs/ARCHITECTURE_en.md)
+- **Local Setup Guide**: [local_dev/README_en.md](local_dev/README_en.md)
+- **Migration Policy**: [migrations/README_en.md](migrations/README_en.md)
 
 ## 🆘 Troubleshooting
 
-Nếu gặp vấn đề, xem phần Troubleshooting trong:
-- **[local_dev/README.md](local_dev/README.md#troubleshooting)** - Các vấn đề thường gặp khi setup local
+If you encounter issues, see the Troubleshooting section in:
+- **[local_dev/README_en.md](local_dev/README_en.md#troubleshooting)** - Common issues when setting up locally
 
 ---
 
 **Made with ❤️ for Vietnamese small businesses**
+

@@ -1,0 +1,37 @@
+graph TD
+    START([Start])
+    intent_router[intent_router]
+    context[context]
+    web_search[web_search]
+    app_read[app_read]
+    app_plan[app_plan]
+    present_plan[present_plan]
+    execute_plan[execute_plan]
+    answer[answer]
+    error[error]
+    END([END])
+
+    START --> intent_router
+    intent_router -->|general_qa| context
+    intent_router -->|tax_qa| web_search
+    intent_router -->|app_read| context
+    intent_router -->|app_plan| context
+    intent_router -->|no_app| answer
+
+    context -->|answer| answer
+    context -->|app_read| app_read
+    context -->|app_plan| app_plan
+
+    web_search --> answer
+    app_read --> answer
+    app_plan --> present_plan
+
+    present_plan -->|execute| execute_plan
+    present_plan -->|cancel| answer
+
+    execute_plan -->|continue| execute_plan
+    execute_plan -->|finish| answer
+
+    answer --> END
+    error --> END
+

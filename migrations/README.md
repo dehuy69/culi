@@ -1,58 +1,125 @@
-# Database Migrations
+# Chính sách Database Migrations
 
-## ⚠️ Migration Management
+**Ngôn ngữ**: [English](README_en.md) | [Tiếng Việt](README.md)
 
-**Migrations are NOT included in this open source repository.**
+## ⚠️ Loại trừ Migrations
 
-Database migrations should be managed separately in production deployments.
+**Các file migration database KHÔNG được bao gồm trong repository open source này.**
 
-### For Open Source Contributors
+Repository này là open source, và migrations sẽ được quản lý riêng trong các deployment production để cho phép linh hoạt cho các chiến lược deployment khác nhau.
 
-- Database schema is defined in SQLAlchemy models under `app/models/`
-- Migrations are excluded from the repository via `.gitignore`
+## Chiến lược Migration
 
-### For Production Deployments
+### Đối với Open Source Repository
 
-When deploying to production:
+- ✅ **SQLAlchemy models** được bao gồm (`app/models/`)
+- ✅ **Alembic configuration** được bao gồm (`alembic.ini`, `migrations/env.py`)
+- ❌ **Migration files** bị loại trừ (`migrations/versions/*.py`)
+- ✅ **Migration directory structure** được giữ lại (với `.gitkeep`)
 
-1. **Generate migrations** from SQLAlchemy models:
+### Đối với Production Deployments
+
+Khi deploy lên production, bạn nên:
+
+1. **Generate migrations** từ SQLAlchemy models:
    ```bash
    alembic revision --autogenerate -m "Initial migration"
    ```
 
-2. **Review and customize** migration files as needed
+2. **Review và customize** migration files theo nhu cầu deployment của bạn
 
-3. **Apply migrations**:
+3. **Apply migrations** trong deployment pipeline:
    ```bash
    alembic upgrade head
    ```
 
-4. **Manage migrations** in your production repository/CI pipeline
+4. **Quản lý migrations** trong repository production hoặc hệ thống CI/CD
 
-### Local Development
+### Đối với Local Development
 
-For local development, you can generate migrations:
+Cho local development, generate migrations khi cần:
 
 ```bash
 # Activate virtual environment
-conda activate venv_culi  # or source venv/bin/activate
+conda activate venv_culi  # hoặc source venv/bin/activate
 
-# Generate migration
-alembic revision --autogenerate -m "Description"
+# Generate migration từ models
+alembic revision --autogenerate -m "Mô tả thay đổi"
+
+# Review file migration đã generate
+# Chỉnh sửa migrations/versions/XXXX_description.py nếu cần
 
 # Apply migration
 alembic upgrade head
 ```
 
-**Note:** Migration files generated locally should not be committed to the repository.
+**Quan trọng:** Các file migration được tạo local sẽ bị git ignore (xem `.gitignore`).
 
-### Migration Files Structure
+## Cấu trúc Thư mục
 
 ```
 migrations/
-├── env.py              # Alembic environment configuration
-├── script.py.mako      # Migration script template
-└── versions/           # Migration files (excluded from git)
-    └── .gitkeep        # Keep directory structure
+├── README.md          # File này - giải thích chính sách migration
+├── env.py             # Cấu hình môi trường Alembic
+├── script.py.mako     # Template script migration
+└── versions/          # Migration files (bị loại trừ khỏi git)
+    └── .gitkeep       # Giữ cấu trúc thư mục
 ```
+
+## Các Lệnh Migration
+
+### Generate Migration
+```bash
+alembic revision --autogenerate -m "Mô tả migration của bạn"
+```
+
+### Apply Migrations
+```bash
+alembic upgrade head
+```
+
+### Rollback Migration
+```bash
+alembic downgrade -1  # Rollback một phiên bản
+```
+
+### Kiểm tra Phiên bản Hiện tại
+```bash
+alembic current
+```
+
+### Xem Lịch sử Migration
+```bash
+alembic history
+```
+
+## Cấu hình .gitignore
+
+Migration files bị loại trừ qua `.gitignore`:
+
+```
+migrations/versions/*.py
+migrations/versions/*.pyc
+!migrations/versions/.gitkeep
+```
+
+Điều này đảm bảo:
+- Migration files không được commit vào repository
+- Cấu trúc thư mục được giữ lại
+- Mỗi deployment có thể quản lý migrations độc lập
+
+## Khuyến nghị Production Deployment
+
+1. **Version Control:** Lưu migrations trong repository riêng hoặc private branch
+2. **CI/CD Integration:** Chạy migrations tự động trong deployment pipeline
+3. **Backup Strategy:** Luôn backup database trước khi chạy migrations
+4. **Testing:** Test migrations trên môi trường staging trước
+5. **Rollback Plan:** Chuẩn bị rollback scripts cho các vấn đề production
+
+## Tại sao Cách tiếp cận này?
+
+- **Linh hoạt:** Các deployment khác nhau có thể cần chiến lược migration khác nhau
+- **Riêng tư:** Migration files có thể chứa các cấu trúc dữ liệu nhạy cảm
+- **Version Control:** Cho phép mỗi deployment theo dõi migrations độc lập
+- **Open Source:** Giữ repository sạch sẽ và tập trung vào application code
 

@@ -764,8 +764,8 @@ ruff check app/ tests/
 ## Next Steps
 
 - Explore API docs tại http://localhost:8000/docs khi server đang chạy
-- Đọc [Implementation Status](../IMPLEMENTATION_STATUS.md) để biết các features hiện tại
-- Xem [API Documentation](../README.md) để hiểu các endpoints
+- Đọc [Architecture Documentation](../docs/ARCHITECTURE.md) để hiểu thiết kế hệ thống
+- Xem [Main README](../README.md) để tổng quan về project
 
 ## Getting Help
 
