@@ -21,7 +21,7 @@ def context_node(state: Dict[str, Any]) -> Dict[str, Any]:
     # Summarize recent messages (simple concatenation for now)
     # TODO: Use LangChain memory for better summarization
     if messages:
-        recent_messages = messages[-10:]  # Last 10 messages
+        recent_messages = messages[-3:]  # Last 3 messages only to reduce prompt size
         chat_context = "\n".join([
             f"{msg.get('role', 'user')}: {msg.get('content', '')}"
             for msg in recent_messages

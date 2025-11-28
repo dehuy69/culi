@@ -46,7 +46,7 @@ def intent_router_node(state: Dict[str, Any]) -> Dict[str, Any]:
     # Build context from messages
     chat_context = "\n".join([
         f"{msg.get('role', 'user')}: {msg.get('content', '')}"
-        for msg in messages[-5:]  # Last 5 messages
+        for msg in messages[-3:]  # Last 3 messages only to reduce prompt size
     ]) if messages else "No previous conversation."
     
     # Build app context

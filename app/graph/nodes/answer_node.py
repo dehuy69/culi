@@ -34,8 +34,25 @@ def answer_node(state: Dict[str, Any]) -> Dict[str, Any]:
     prompt_path = Path(__file__).parent.parent.parent / "prompts" / "answer_prompt.txt"
     prompt_template = prompt_path.read_text()
     
-    # Format data for prompt
-    app_data_str = json.dumps(data_to_use, indent=2, ensure_ascii=False) if data_to_use else "None"
+    # Format data for prompt - limit size to avoid token limit
+    if data_to_use:
+        # Limit app_data size to avoid exceeding token limits
+        if isinstance(data_to_use, dict):
+            # If data has a list, limit it to first 5 items
+            limited_data = {}
+            for key, value in data_to_use.items():
+                if isinstance(value, list) and len(value) > 5:
+                    limited_data[key] = value[:5] + [f"... (and {len(value) - 5} more items)"]
+                else:
+                    limited_data[key] = value
+            app_data_str = json.dumps(limited_data, indent=2, ensure_ascii=False)
+        else:
+            app_data_str = json.dumps(data_to_use, indent=2, ensure_ascii=False)
+        # Truncate if still too long
+        if len(app_data_str) > 3000:
+            app_data_str = app_data_str[:3000] + "... (truncated)"
+    else:
+        app_data_str = "None"
     web_results_str = json.dumps(web_results, indent=2, ensure_ascii=False) if web_results else "None"
     step_results_str = json.dumps(step_results, indent=2, ensure_ascii=False) if step_results else "None"
     plan_str = json.dumps(plan, indent=2, ensure_ascii=False) if plan else "None"

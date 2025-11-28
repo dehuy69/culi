@@ -5,18 +5,24 @@ from app.core.logging import get_logger
 
 logger = get_logger(__name__)
 
-# Generate key from settings encryption_key (should be 32 bytes base64 encoded)
+# Initialize Fernet with encryption_key from settings
+# The key in .env should already be a valid Fernet key (base64-encoded 32 bytes)
 try:
-    # Ensure encryption_key is properly formatted
-    key = settings.encryption_key.encode()
-    if len(key) < 32:
-        # Pad or repeat key to 32 bytes
-        key = (key * (32 // len(key) + 1))[:32]
-    
-    # Base64 encode for Fernet
     import base64
-    key = base64.urlsafe_b64encode(key)
-    cipher_suite = Fernet(key)
+    key_str = settings.encryption_key.strip().strip('"').strip("'")  # Remove quotes if present
+    
+    # Try to use the key directly as Fernet key
+    try:
+        # Validate it's a valid Fernet key by decoding
+        base64.urlsafe_b64decode(key_str)
+        cipher_suite = Fernet(key_str.encode())
+        logger.info("Encryption initialized with key from settings")
+    except Exception:
+        # If not valid, generate a new key and log warning
+        logger.warning(f"Invalid encryption key format. Generating new key. Please update ENCRYPTION_KEY in .env")
+        new_key = Fernet.generate_key()
+        logger.warning(f"Generated new key: {new_key.decode()}")
+        cipher_suite = Fernet(new_key)
 except Exception as e:
     logger.warning(f"Failed to initialize encryption: {e}. Using dummy key (DO NOT USE IN PRODUCTION)")
     # Fallback for development - DO NOT USE IN PRODUCTION

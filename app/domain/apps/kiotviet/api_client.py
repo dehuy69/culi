@@ -47,7 +47,7 @@ class KiotVietApiClient:
     def _headers(self, access_token: str) -> Dict[str, str]:
         """Get headers with authentication for API requests."""
         return {
-            "Retailer": self.config.retailer,
+            "Retailer": self.config.retailer.strip(),  # Strip whitespace to avoid illegal header values
             "Authorization": f"Bearer {access_token}",
             "Content-Type": "application/json",
         }

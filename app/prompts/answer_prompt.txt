@@ -8,7 +8,7 @@ Context from conversation: {chat_context}
 
 Additional context: {kb_context}
 
-MCP data (if applicable): {mcp_data}
+App data from connected application (if applicable): {app_data}
 
 Web search results (if applicable): {web_results}
 

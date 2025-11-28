@@ -35,6 +35,33 @@ class KiotVietAdapter:
         kv_config = KiotVietConfig.from_connected_app_config(config)
         return KiotVietApiClient(kv_config)
     
+    def _run_async(self, coro):
+        """
+        Helper to run async code, handling both sync and async contexts.
+        """
+        import asyncio
+        try:
+            loop = asyncio.get_running_loop()
+            # If we're in an async context, we need to use a different approach
+            # Create a new event loop in a thread
+            import concurrent.futures
+            import threading
+            
+            def run_in_thread():
+                new_loop = asyncio.new_event_loop()
+                asyncio.set_event_loop(new_loop)
+                try:
+                    return new_loop.run_until_complete(coro)
+                finally:
+                    new_loop.close()
+            
+            with concurrent.futures.ThreadPoolExecutor() as executor:
+                future = executor.submit(run_in_thread)
+                return future.result()
+        except RuntimeError:
+            # No running loop, can use asyncio.run
+            return asyncio.run(coro)
+    
     def read(self, intent: AppReadIntent, config: ConnectedAppConfig) -> Dict[str, Any]:
         """
         Read data from KiotViet based on intent.
@@ -46,65 +73,64 @@ class KiotVietAdapter:
         Returns:
             Dictionary with read data
         """
-        import asyncio
         client = self._build_client(config)
         
         try:
             # Dispatch based on intent kind
             if intent.kind == "LIST_INVOICES":
-                result = asyncio.run(client.get_invoices(**intent.params))
+                result = self._run_async(client.get_invoices(**intent.params))
                 return mappers.map_invoice_list(result)
             
             elif intent.kind == "LIST_ORDERS":
-                result = asyncio.run(client.get_orders(**intent.params))
+                result = self._run_async(client.get_orders(**intent.params))
                 return mappers.map_order_list(result)
             
             elif intent.kind == "LIST_PRODUCTS":
-                result = asyncio.run(client.get_products(**intent.params))
+                result = self._run_async(client.get_products(**intent.params))
                 return mappers.map_product_list(result)
             
             elif intent.kind == "LIST_CUSTOMERS":
-                result = asyncio.run(client.get_customers(**intent.params))
+                result = self._run_async(client.get_customers(**intent.params))
                 return mappers.map_customer_list(result)
             
             elif intent.kind == "LIST_CATEGORIES":
-                result = asyncio.run(client.get_categories(**intent.params))
+                result = self._run_async(client.get_categories(**intent.params))
                 return mappers.map_category_list(result)
             
             elif intent.kind == "LIST_BRANCHES":
-                result = asyncio.run(client.get_branches())
+                result = self._run_async(client.get_branches())
                 return mappers.map_branch_list(result)
             
             elif intent.kind == "SUMMARY_REVENUE":
                 # Get invoices and calculate summary
                 params = intent.params.copy()
-                result = asyncio.run(client.get_invoices(**params))
+                result = self._run_async(client.get_invoices(**params))
                 return mappers.map_summary_revenue(result)
             
             elif intent.kind == "GET_PRODUCT":
                 product_id = intent.params.get("product_id")
                 product_code = intent.params.get("product_code")
-                result = asyncio.run(client.get_product(product_id, product_code))
+                result = self._run_async(client.get_product(product_id, product_code))
                 return {"product": result.get("data", {})}
             
             elif intent.kind == "GET_CUSTOMER":
                 customer_id = intent.params.get("customer_id")
                 customer_code = intent.params.get("customer_code")
-                result = asyncio.run(client.get_customer(customer_id, customer_code))
+                result = self._run_async(client.get_customer(customer_id, customer_code))
                 return {"customer": result.get("data", {})}
             
             elif intent.kind == "GET_INVOICE":
                 invoice_id = intent.params.get("invoice_id")
                 invoice_code = intent.params.get("invoice_code")
                 include_payment = intent.params.get("include_payment", False)
-                result = asyncio.run(client.get_invoice(invoice_id, invoice_code, include_payment))
+                result = self._run_async(client.get_invoice(invoice_id, invoice_code, include_payment))
                 return {"invoice": result.get("data", {})}
             
             elif intent.kind == "GET_ORDER":
                 order_id = intent.params.get("order_id")
                 order_code = intent.params.get("order_code")
                 include_payment = intent.params.get("include_payment", False)
-                result = asyncio.run(client.get_order(order_id, order_code, include_payment))
+                result = self._run_async(client.get_order(order_id, order_code, include_payment))
                 return {"order": result.get("data", {})}
             
             else:
@@ -136,7 +162,6 @@ class KiotVietAdapter:
         Returns:
             StepResult with execution result
         """
-        import asyncio
         client = self._build_client(config)
         
         try:
@@ -144,63 +169,63 @@ class KiotVietAdapter:
             
             # Dispatch based on action
             if step.action == "CREATE_PRODUCT":
-                raw_result = asyncio.run(client.create_product(step.params))
+                raw_result = self._run_async(client.create_product(step.params))
             
             elif step.action == "UPDATE_PRODUCT":
                 product_id = step.params.pop("product_id")
-                raw_result = asyncio.run(client.update_product(product_id, step.params))
+                raw_result = self._run_async(client.update_product(product_id, step.params))
             
             elif step.action == "DELETE_PRODUCT":
                 product_id = step.params.get("product_id")
-                raw_result = asyncio.run(client.delete_product(product_id))
+                raw_result = self._run_async(client.delete_product(product_id))
             
             elif step.action == "CREATE_CATEGORY":
                 category_name = step.params.get("category_name")
                 parent_id = step.params.get("parent_id")
-                raw_result = asyncio.run(client.create_category(category_name, parent_id))
+                raw_result = self._run_async(client.create_category(category_name, parent_id))
             
             elif step.action == "UPDATE_CATEGORY":
                 category_id = step.params.pop("category_id")
                 category_name = step.params.get("category_name")
                 parent_id = step.params.get("parent_id")
-                raw_result = asyncio.run(client.update_category(category_id, category_name, parent_id))
+                raw_result = self._run_async(client.update_category(category_id, category_name, parent_id))
             
             elif step.action == "DELETE_CATEGORY":
                 category_id = step.params.get("category_id")
-                raw_result = asyncio.run(client.delete_category(category_id))
+                raw_result = self._run_async(client.delete_category(category_id))
             
             elif step.action == "CREATE_CUSTOMER":
-                raw_result = asyncio.run(client.create_customer(step.params))
+                raw_result = self._run_async(client.create_customer(step.params))
             
             elif step.action == "UPDATE_CUSTOMER":
                 customer_id = step.params.pop("customer_id")
-                raw_result = asyncio.run(client.update_customer(customer_id, step.params))
+                raw_result = self._run_async(client.update_customer(customer_id, step.params))
             
             elif step.action == "DELETE_CUSTOMER":
                 customer_id = step.params.get("customer_id")
-                raw_result = asyncio.run(client.delete_customer(customer_id))
+                raw_result = self._run_async(client.delete_customer(customer_id))
             
             elif step.action == "CREATE_ORDER":
-                raw_result = asyncio.run(client.create_order(step.params))
+                raw_result = self._run_async(client.create_order(step.params))
             
             elif step.action == "UPDATE_ORDER":
                 order_id = step.params.pop("order_id")
-                raw_result = asyncio.run(client.update_order(order_id, step.params))
+                raw_result = self._run_async(client.update_order(order_id, step.params))
             
             elif step.action == "DELETE_ORDER":
                 order_id = step.params.get("order_id")
-                raw_result = asyncio.run(client.delete_order(order_id))
+                raw_result = self._run_async(client.delete_order(order_id))
             
             elif step.action == "CREATE_INVOICE":
-                raw_result = asyncio.run(client.create_invoice(step.params))
+                raw_result = self._run_async(client.create_invoice(step.params))
             
             elif step.action == "UPDATE_INVOICE":
                 invoice_id = step.params.pop("invoice_id")
-                raw_result = asyncio.run(client.update_invoice(invoice_id, step.params))
+                raw_result = self._run_async(client.update_invoice(invoice_id, step.params))
             
             elif step.action == "DELETE_INVOICE":
                 invoice_id = step.params.get("invoice_id")
-                raw_result = asyncio.run(client.delete_invoice(invoice_id))
+                raw_result = self._run_async(client.delete_invoice(invoice_id))
             
             else:
                 return StepResult(

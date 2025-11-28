@@ -72,8 +72,11 @@ async def app_read_node(state: Dict[str, Any]) -> Dict[str, Any]:
         # Build ConnectedAppConfig from state
         app_config = ConnectedAppConfig(**connected_app_dict.get("config", {}))
         
+        # Get category string - handle both enum and string
+        category_str = app_config.category.value if hasattr(app_config.category, 'value') else str(app_config.category)
+        
         # Detect read intent
-        read_intent = detect_app_read_intent(user_input, app_config.category.value)
+        read_intent = detect_app_read_intent(user_input, category_str)
         logger.info(f"Detected read intent: {read_intent.kind} for app: {app_config.app_id}")
         
         # Get adapter and read data
@@ -96,15 +99,22 @@ def app_read_node_sync(state: Dict[str, Any]) -> Dict[str, Any]:
     For use in LangGraph nodes that require synchronous functions.
     """
     try:
-        loop = asyncio.get_event_loop()
-        if loop.is_running():
-            # If loop is already running, use thread pool
-            import concurrent.futures
-            with concurrent.futures.ThreadPoolExecutor() as executor:
-                future = executor.submit(asyncio.run, app_read_node(state))
-                return future.result()
-        else:
-            return asyncio.run(app_read_node(state))
+        loop = asyncio.get_running_loop()
+        # Event loop is running, need to run in thread
+        import concurrent.futures
+        import threading
+        
+        def run_in_thread():
+            new_loop = asyncio.new_event_loop()
+            asyncio.set_event_loop(new_loop)
+            try:
+                return new_loop.run_until_complete(app_read_node(state))
+            finally:
+                new_loop.close()
+        
+        with concurrent.futures.ThreadPoolExecutor() as executor:
+            future = executor.submit(run_in_thread)
+            return future.result()
     except RuntimeError:
-        # No event loop, create new one
+        # No running loop, can use asyncio.run
         return asyncio.run(app_read_node(state))

@@ -21,6 +21,9 @@ def send_message(
     db: Session = Depends(get_db)
 ):
     """Send a chat message and get response."""
+    from app.core.logging import get_logger
+    logger = get_logger(__name__)
+    
     try:
         result = ChatService.process_message(
             db,
@@ -31,9 +34,17 @@ def send_message(
         )
         return result
     except ValueError as e:
+        logger.error(f"ValueError in chat: {str(e)}", exc_info=True)
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=str(e))
     except Exception as e:
-        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=str(e))
+        import traceback
+        error_detail = str(e) if str(e) else f"{type(e).__name__}: {repr(e)}"
+        error_traceback = traceback.format_exc()
+        logger.error(f"Unexpected error in chat: {error_detail}\n{error_traceback}", exc_info=True)
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, 
+            detail=f"Internal server error: {error_detail}"
+        )
 
 
 @router.get("/conversations", response_model=ConversationListResponse)

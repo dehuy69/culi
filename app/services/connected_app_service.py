@@ -141,7 +141,11 @@ class ConnectedAppService:
             if connected_app.connection_method == ConnectionMethod.API:
                 if connected_app.client_id and connected_app.client_secret_encrypted:
                     credentials["client_id"] = connected_app.client_id
-                    credentials["client_secret"] = decrypt(connected_app.client_secret_encrypted)
+                    try:
+                        credentials["client_secret"] = decrypt(connected_app.client_secret_encrypted)
+                    except Exception as e:
+                        logger.error(f"Failed to decrypt client_secret: {str(e)}", exc_info=True)
+                        raise ValueError(f"Failed to decrypt client_secret: {str(e)}")
                 if connected_app.retailer:
                     credentials["retailer"] = connected_app.retailer
             

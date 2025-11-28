@@ -77,7 +77,11 @@ class ChatService:
             if connected_app_model.connection_method.value == "api":
                 if connected_app_model.client_id and connected_app_model.client_secret_encrypted:
                     credentials["client_id"] = connected_app_model.client_id
-                    credentials["client_secret"] = decrypt(connected_app_model.client_secret_encrypted)
+                    try:
+                        credentials["client_secret"] = decrypt(connected_app_model.client_secret_encrypted)
+                    except Exception as e:
+                        logger.error(f"Failed to decrypt client_secret: {str(e)}", exc_info=True)
+                        raise ValueError(f"Failed to decrypt client_secret: {str(e)}")
                 if connected_app_model.retailer:
                     credentials["retailer"] = connected_app_model.retailer
             elif connected_app_model.connection_method.value == "mcp":
@@ -205,9 +209,9 @@ class ChatService:
             logger.error(f"Configuration error: {str(e)}", exc_info=True)
             raise ValueError(f"Configuration error: {str(e)}")
         except Exception as e:
-            logger.error(f"Error processing message: {str(e)}", exc_info=True)
+            error_msg = str(e) if str(e) else f"{type(e).__name__}: {repr(e)}"
+            logger.error(f"Error processing message: {error_msg}", exc_info=True)
             # Provide more user-friendly error message
-            error_msg = str(e)
             
             # Handle specific error cases
             if "api_key" in error_msg.lower() or "OPENAI_API_KEY" in error_msg:
