@@ -1,28 +1,28 @@
 # Culi Backend Architecture
 
-Tài liệu này mô tả kiến trúc và thiết kế của Culi Backend.
+This document describes the architecture and design of Culi Backend.
 
-**Ngôn ngữ**: [English](ARCHITECTURE_en.md) | [Tiếng Việt](ARCHITECTURE.md)
+**Language**: [English](ARCHITECTURE_en.md) | [Tiếng Việt](ARCHITECTURE.md)
 
-## 📋 Mục lục
+## 📋 Table of Contents
 
-1. [Tổng quan](#tổng-quan)
-2. [Kiến trúc tổng thể](#kiến-trúc-tổng-thể)
+1. [Overview](#overview)
+2. [Overall Architecture](#overall-architecture)
 3. [LangGraph Architecture](#langgraph-architecture)
 4. [Adapter Pattern](#adapter-pattern)
 5. [Database Models](#database-models)
 6. [API Layer](#api-layer)
 7. [Security](#security)
 
-## Tổng quan
+## Overview
 
-Culi Backend là một AI agent backend được xây dựng với:
-- **FastAPI** cho REST API
-- **LangGraph** cho AI agent orchestration
-- **Adapter Pattern** để hỗ trợ nhiều loại ứng dụng bên ngoài
-- **Domain-Driven Design** để tổ chức code
+Culi Backend is an AI agent backend built with:
+- **FastAPI** for REST API
+- **LangGraph** for AI agent orchestration
+- **Adapter Pattern** to support multiple types of external applications
+- **Domain-Driven Design** for code organization
 
-## Kiến trúc tổng thể
+## Overall Architecture
 
 ```
 ┌─────────────────────────────────────────────────────────┐
@@ -71,7 +71,7 @@ Culi Backend là một AI agent backend được xây dựng với:
 
 ## LangGraph Architecture
 
-LangGraph quản lý workflow xử lý câu hỏi của người dùng.
+LangGraph manages the workflow for processing user questions.
 
 ### Graph Flow
 
@@ -82,7 +82,7 @@ LangGraph quản lý workflow xử lý câu hỏi của người dùng.
        │
        ▼
 ┌─────────────┐
-│ intent_router│ ◄─── Phân loại intent từ user input
+│ intent_router│ ◄─── Classify intent from user input
 └──────┬──────┘
        │
        ├─── general_qa ────┐
@@ -143,64 +143,64 @@ LangGraph quản lý workflow xử lý câu hỏi của người dùng.
 
 #### 1. `intent_router_node`
 
-Phân loại intent từ user input:
-- **general_qa**: Câu hỏi chung, không cần app
-- **tax_qa**: Câu hỏi về thuế, cần web search
-- **app_read**: Đọc dữ liệu từ app
-- **app_plan**: Lập kế hoạch thao tác trên app
-- **no_app**: Chưa cấu hình app
+Classify intent from user input:
+- **general_qa**: General questions, no app needed
+- **tax_qa**: Tax questions, needs web search
+- **app_read**: Read data from app
+- **app_plan**: Plan operations on app
+- **no_app**: App not configured
 
 #### 2. `context_node`
 
-Thu thập context:
-- Conversation history (tối đa 3 messages gần nhất)
+Collect context:
+- Conversation history (maximum 3 recent messages)
 - Workspace information
 - Connected app configuration
 
 #### 3. `app_read_node`
 
-Đọc dữ liệu từ connected app:
-- Sử dụng adapter pattern
-- Dispatch theo `AppReadIntent.kind`
-- Ví dụ: LIST_PRODUCTS, LIST_INVOICES, SUMMARY_REVENUE
+Read data from connected app:
+- Uses adapter pattern
+- Dispatch based on `AppReadIntent.kind`
+- Examples: LIST_PRODUCTS, LIST_INVOICES, SUMMARY_REVENUE
 
 #### 4. `app_plan_node`
 
-Tạo execution plan:
-- Strategy khác nhau theo `app.category`:
-  - `POS_SIMPLE`: Tạo sản phẩm, hóa đơn
-  - `ACCOUNTING`: Mapping tài khoản, định khoản
+Create execution plan:
+- Different strategies based on `app.category`:
+  - `POS_SIMPLE`: Create products, invoices
+  - `ACCOUNTING`: Map accounts, journal entries
   - `UNKNOWN`: Limited operations
 
 #### 5. `execute_plan_node`
 
-Thực thi plan từng bước:
-- Sử dụng adapter pattern
-- Execute từng `PlanStep` theo thứ tự
-- Tích lũy `StepResult` để tạo answer
+Execute plan step by step:
+- Uses adapter pattern
+- Execute each `PlanStep` in order
+- Accumulate `StepResult` to create answer
 
 #### 6. `answer_node`
 
-Tạo câu trả lời cuối cùng:
-- Tổng hợp context, app_data, web_results, step_results
-- Sử dụng LLM để generate natural language response
+Generate final answer:
+- Synthesize context, app_data, web_results, step_results
+- Use LLM to generate natural language response
 - Format markdown, tables, lists
 
 #### 7. `web_search_node`
 
-Tìm kiếm thông tin trên web:
-- Sử dụng Google Custom Search API
-- Cho câu hỏi về thuế, quy định
+Search for information on web:
+- Uses Google Custom Search API
+- For tax questions, regulations
 
 #### 8. `present_plan_node`
 
-Hiển thị plan cho user approval:
-- Chỉ dùng trong production với checkpoints
+Display plan for user approval:
+- Only used in production with checkpoints
 - Local development: auto-approve
 
 ### State
 
-`CuliState` (TypedDict) chứa tất cả data flow qua graph:
+`CuliState` (TypedDict) contains all data flowing through the graph:
 
 ```python
 class CuliState(TypedDict, total=False):
@@ -244,17 +244,17 @@ class CuliState(TypedDict, total=False):
 
 ### Visualize Graph
 
-Để generate biểu đồ LangGraph:
+To generate LangGraph diagram:
 
 ```bash
 python scripts/generate_langgraph_chart.py --format mermaid --output docs/langgraph_chart.mmd
 ```
 
-File Mermaid có thể được render tại [Mermaid Live Editor](https://mermaid.live/).
+Mermaid file can be rendered at [Mermaid Live Editor](https://mermaid.live/).
 
 ## Adapter Pattern
 
-Adapter pattern cho phép hệ thống hỗ trợ nhiều loại ứng dụng bên ngoài một cách generic.
+The adapter pattern allows the system to support multiple types of external applications in a generic way.
 
 ### Architecture
 
@@ -287,7 +287,7 @@ Adapter pattern cho phép hệ thống hỗ trợ nhiều loại ứng dụng b�
 
 ### BaseAppAdapter Interface
 
-Tất cả adapters implement interface:
+All adapters implement this interface:
 
 ```python
 class BaseAppAdapter(Protocol):
@@ -306,11 +306,11 @@ class BaseAppAdapter(Protocol):
 
 ### App Categories
 
-Apps được phân loại:
+Apps are categorized:
 
-- **POS_SIMPLE**: KiotViet, Misa eShop, Sapo - quản lý bán hàng đơn giản
-- **ACCOUNTING**: MISA, Fast, Bravo - phần mềm kế toán
-- **UNKNOWN**: Apps chưa phân loại
+- **POS_SIMPLE**: KiotViet, Misa eShop, Sapo - simple sales management
+- **ACCOUNTING**: MISA, Fast, Bravo - accounting software
+- **UNKNOWN**: Uncategorized apps
 
 ### Connection Methods
 
@@ -343,7 +343,7 @@ class KiotVietAdapter:
 
 ### Adapter Registry
 
-Adapters được đăng ký tại startup:
+Adapters are registered at startup:
 
 ```python
 from app.domain.apps.kiotviet.adapter import KiotVietAdapter
@@ -352,7 +352,7 @@ from app.domain.apps.registry import register_adapter
 register_adapter("kiotviet", KiotVietAdapter())
 ```
 
-Sử dụng trong graph nodes:
+Used in graph nodes:
 
 ```python
 from app.domain.apps.registry import get_adapter
@@ -365,16 +365,16 @@ data = adapter.read(intent, app_config)
 
 ### Core Models
 
-1. **User**: Người dùng
-2. **Workspace**: Workspace (mỗi user có thể có nhiều workspace)
-3. **Conversation**: Cuộc trò chuyện
-4. **Message**: Tin nhắn trong conversation
+1. **User**: User
+2. **Workspace**: Workspace (each user can have multiple workspaces)
+3. **Conversation**: Conversation
+4. **Message**: Message in conversation
 5. **AgentRun**: LangGraph run
 6. **AgentStep**: LangGraph step
 
 ### ConnectedApp Model
 
-Thay thế `AppConnection`, model mới:
+Replaces `AppConnection`, new model:
 
 ```python
 class ConnectedApp(BaseModel):
@@ -413,25 +413,25 @@ User ──┬── Workspace ──┬── Conversation ──┬── Mess
 ### REST Endpoints
 
 #### Authentication
-- `POST /api/v1/auth/register` - Đăng ký
-- `POST /api/v1/auth/login` - Đăng nhập
-- `GET /api/v1/auth/me` - Thông tin user hiện tại
+- `POST /api/v1/auth/register` - Register
+- `POST /api/v1/auth/login` - Login
+- `GET /api/v1/auth/me` - Current user information
 
 #### Workspace
 - `GET /api/v1/workspaces` - List workspaces
-- `POST /api/v1/workspaces` - Tạo workspace
-- `GET /api/v1/workspaces/{id}` - Chi tiết workspace
+- `POST /api/v1/workspaces` - Create workspace
+- `GET /api/v1/workspaces/{id}` - Workspace details
 
 #### Connected Apps
 - `GET /api/v1/workspaces/{workspace_id}/connected-apps` - List apps
-- `POST /api/v1/workspaces/{workspace_id}/connected-apps` - Tạo app connection
-- `GET /api/v1/workspaces/{workspace_id}/connected-apps/{id}` - Chi tiết app
+- `POST /api/v1/workspaces/{workspace_id}/connected-apps` - Create app connection
+- `GET /api/v1/workspaces/{workspace_id}/connected-apps/{id}` - App details
 - `PUT /api/v1/workspaces/{workspace_id}/connected-apps/{id}` - Update app
-- `DELETE /api/v1/workspaces/{workspace_id}/connected-apps/{id}` - Xóa app
+- `DELETE /api/v1/workspaces/{workspace_id}/connected-apps/{id}` - Delete app
 - `POST /api/v1/workspaces/{workspace_id}/connected-apps/{id}/test` - Test connection
 
 #### Chat
-- `POST /api/v1/workspaces/{workspace_id}/chat` - Gửi message
+- `POST /api/v1/workspaces/{workspace_id}/chat` - Send message
 - `GET /api/v1/workspaces/{workspace_id}/conversations` - List conversations
 - `GET /api/v1/workspaces/{workspace_id}/conversations/{id}/messages` - Get messages
 
@@ -454,16 +454,16 @@ Database (PostgreSQL)
 ### Authentication & Authorization
 
 - **JWT tokens**: User authentication
-- **Workspace ownership**: Users chỉ có thể access workspaces của họ
+- **Workspace ownership**: Users can only access their own workspaces
 - **Token expiration**: Configurable (default 30 minutes)
 
 ### Encryption
 
-Sensitive data được encrypt trước khi lưu database:
+Sensitive data is encrypted before storing in database:
 - `client_secret` (OAuth credentials)
 - `mcp_auth_config` (MCP authentication)
 
-Sử dụng **Fernet** (symmetric encryption) với key từ `ENCRYPTION_KEY` environment variable.
+Uses **Fernet** (symmetric encryption) with key from `ENCRYPTION_KEY` environment variable.
 
 ### API Security
 
@@ -475,22 +475,22 @@ Sử dụng **Fernet** (symmetric encryption) với key từ `ENCRYPTION_KEY` en
 
 ### LLM Token Optimization
 
-- **Conversation history**: Giới hạn 3 messages gần nhất
-- **App data**: Giới hạn số lượng items (ví dụ: 5 products đầu tiên)
-- **Model selection**: Sử dụng models rẻ hơn cho intent classification và simple tasks
+- **Conversation history**: Limit to 3 most recent messages
+- **App data**: Limit number of items (e.g., first 5 products)
+- **Model selection**: Use cheaper models for intent classification and simple tasks
 
 ### Caching (Future)
 
-- **OAuth tokens**: Redis cache để tránh refresh liên tục
-- **API responses**: Cache kết quả từ external APIs
-- **LLM responses**: Cache responses cho câu hỏi tương tự
+- **OAuth tokens**: Redis cache to avoid constant refresh
+- **API responses**: Cache results from external APIs
+- **LLM responses**: Cache responses for similar questions
 
 ## Future Enhancements
 
 1. **Redis Integration**: OAuth token caching, rate limiting
-2. **RAG (Retrieval-Augmented Generation)**: Knowledge base cho domain-specific questions
-3. **Streaming Responses**: Real-time streaming từ LangGraph
-4. **Multi-language Support**: Hỗ trợ tiếng Anh, tiếng Việt
+2. **RAG (Retrieval-Augmented Generation)**: Knowledge base for domain-specific questions
+3. **Streaming Responses**: Real-time streaming from LangGraph
+4. **Multi-language Support**: Support English, Vietnamese
 5. **More App Adapters**: Misa eShop, Sapo, MISA accounting
 
 ## References

@@ -1,24 +1,24 @@
 # Local Development Guide
 
-Hướng dẫn setup và chạy Culi Backend trong môi trường local development.
+Guide for setting up and running Culi Backend in a local development environment.
 
-**Ngôn ngữ**: [English](README_en.md) | [Tiếng Việt](README.md)
+**Language**: [English](README_en.md) | [Tiếng Việt](README.md)
 
-## Kiến trúc Development
+## Development Architecture
 
-Development workflow sử dụng **hybrid approach**:
-- **Dependencies** (PostgreSQL, Redis, ...) chạy trong Docker containers
-- **Application code** (Culi backend) chạy trực tiếp trên máy local với Python
+The development workflow uses a **hybrid approach**:
+- **Dependencies** (PostgreSQL, Redis, ...) run in Docker containers
+- **Application code** (Culi backend) runs directly on local machine with Python
 
-Lợi ích:
-- ✅ Code changes được phản ánh ngay lập tức (hot reload)
-- ✅ Dễ dàng debug và sử dụng IDE tools
-- ✅ Dependencies được quản lý tập trung bằng Docker
-- ✅ Không cần rebuild Docker image khi code thay đổi
+Benefits:
+- ✅ Code changes are reflected immediately (hot reload)
+- ✅ Easy to debug and use IDE tools
+- ✅ Dependencies are managed centrally with Docker
+- ✅ No need to rebuild Docker image when code changes
 
 ## Prerequisites
 
-Đảm bảo bạn đã cài đặt:
+Make sure you have installed:
 
 1. **Python 3.10+**
    ```bash
@@ -36,81 +36,81 @@ Lợi ích:
    git --version
    ```
 
-## Setup Manual - Từng bước
+## Setup Manual - Step by Step
 
-### Bước 1: Tạo Virtual Environment
+### Step 1: Create Virtual Environment
 
 ```bash
-# Di chuyển vào root directory của project
+# Navigate to project root directory
 cd /path/to/culi
 
-# Tạo virtual environment
+# Create virtual environment
 python3 -m venv venv
 
 # Activate virtual environment
-# Trên Linux/Mac:
+# On Linux/Mac:
 source venv/bin/activate
 
-# Trên Windows:
+# On Windows:
 venv\Scripts\activate
 
-# Kiểm tra đã activate thành công (prompt sẽ có prefix (venv))
+# Verify activation was successful (prompt will have (venv) prefix)
 which python  # Linux/Mac
 where python  # Windows
 ```
 
-### Bước 2: Cài đặt Dependencies Python
+### Step 2: Install Python Dependencies
 
 ```bash
-# Đảm bảo đã activate venv (prompt có (venv))
+# Make sure venv is activated (prompt shows (venv))
 # Upgrade pip
 pip install --upgrade pip
 
-# Cài đặt các dependencies
+# Install dependencies
 pip install -r requirements.txt
 
-# Kiểm tra cài đặt thành công
+# Verify installation was successful
 pip list
 ```
 
-### Bước 3: Tạo và Cấu hình Environment Variables
+### Step 3: Create and Configure Environment Variables
 
 ```bash
-# Copy file template
+# Copy template file
 cp .env.example .env
 
-# Mở file .env để chỉnh sửa
+# Open .env file to edit
 # Linux/Mac:
 nano .env
-# hoặc
+# or
 vim .env
-# hoặc dùng editor khác
+# or use another editor
 
 # Windows:
 notepad .env
 ```
 
-**Các biến môi trường cần cấu hình:**
+**Environment variables to configure:**
 
 ```env
-# Database - giữ nguyên default
+# Database - keep default
 DATABASE_URL=postgresql://postgres:postgres@localhost:5432/culi_db
 
-# JWT Secret - tạo random string (tối thiểu 32 ký tự)
-# Ví dụ: openssl rand -hex 32
+# JWT Secret - generate random string (minimum 32 characters)
+# Example: openssl rand -hex 32
 SECRET_KEY=your-random-secret-key-minimum-32-characters-long
 
 # OpenRouter API Key - REQUIRED
-# Đăng ký tại: https://openrouter.ai
+# Sign up at: https://openrouter.ai
 OPENROUTER_API_KEY=your-openrouter-api-key-here
 
 # Encryption Key - REQUIRED
-# Generate bằng Python:
+# Generate with Python:
 python scripts/generate_encryption_key.py
-# Copy output và paste vào đây
+# Copy output and paste here
 ENCRYPTION_KEY=your-encryption-key-from-script
 
-# Google Search (Optional - cho web search features)
+# Google Search (Optional - for web search features)
 GOOGLE_SEARCH_API_KEY=your-google-api-key
 GOOGLE_SEARCH_CX=your-search-engine-id
 
@@ -126,31 +126,31 @@ APP_VERSION=0.1.0
 **Generate Encryption Key:**
 
 ```bash
-# Chạy script generate key
+# Run script to generate key
 python scripts/generate_encryption_key.py
 
-# Copy output và thêm vào .env file
+# Copy output and add to .env file
 ```
 
-### Bước 4: Start Dependencies với Docker Compose
+### Step 4: Start Dependencies with Docker Compose
 
 ```bash
-# Di chuyển vào folder local_dev
+# Navigate to local_dev folder
 cd local_dev
 
-# Kiểm tra docker-compose.yml có tồn tại
+# Verify docker-compose.yml exists
 ls -la docker-compose.yml
 
 # Start PostgreSQL service
 docker-compose up -d postgres
 
-# Kiểm tra container đang chạy
+# Check containers are running
 docker-compose ps
 
-# Xem logs để đảm bảo PostgreSQL đã sẵn sàng
+# View logs to ensure PostgreSQL is ready
 docker-compose logs postgres
 
-# Test connection (chờ khoảng 3-5 giây sau khi start)
+# Test connection (wait about 3-5 seconds after starting)
 docker-compose exec postgres pg_isready -U postgres
 ```
 
@@ -159,56 +159,56 @@ docker-compose exec postgres pg_isready -U postgres
 postgres:5432 - accepting connections
 ```
 
-### Bước 5: Setup Database Schema
+### Step 5: Setup Database Schema
 
-**⚠️ Lưu ý:** Migrations không được include trong open source repository. Bạn cần tự tạo migration cho local development.
+**⚠️ Note:** Migrations are NOT included in the open source repository. You need to create migrations yourself for local development.
 
 ```bash
-# Quay về root directory
+# Return to root directory
 cd ..
 
-# Đảm bảo đã activate venv
+# Make sure venv is activated
 source venv/bin/activate  # Linux/Mac
-# hoặc: venv\Scripts\activate  # Windows
+# or: venv\Scripts\activate  # Windows
 
-# Tạo migration đầu tiên từ SQLAlchemy models
+# Create initial migration from SQLAlchemy models
 alembic revision --autogenerate -m "Initial migration with all models"
 
-# Review migration file trong migrations/versions/ (nếu cần)
+# Review migration file in migrations/versions/ (if needed)
 
-# Apply migration để tạo database schema
+# Apply migration to create database schema
 alembic upgrade head
 
-# Kiểm tra kết quả
-# Nếu thành công, sẽ thấy các bảng được tạo
+# Verify results
+# If successful, you will see tables being created
 ```
 
-**Note:** Migration files được tạo sẽ không được commit vào repository (đã được ignore trong .gitignore).
+**Note:** Migration files created will not be committed to repository (already ignored in .gitignore).
 
 **Verify database:**
 
 ```bash
-# Kết nối vào PostgreSQL
+# Connect to PostgreSQL
 docker-compose -f local_dev/docker-compose.yml exec postgres psql -U postgres -d culi_db
 
-# Trong psql shell, kiểm tra tables
+# In psql shell, check tables
 \dt
 
-# Thoát khỏi psql
+# Exit psql
 \q
 ```
 
-### Bước 6: Start Development Server
+### Step 6: Start Development Server
 
 ```bash
-# Đảm bảo đã activate venv
+# Make sure venv is activated
 source venv/bin/activate  # Linux/Mac
-# hoặc: venv\Scripts\activate  # Windows
+# or: venv\Scripts\activate  # Windows
 
-# Start FastAPI development server với hot reload
+# Start FastAPI development server with hot reload
 uvicorn app.main:app --reload --host 0.0.0.0 --port 8000
 
-# Server sẽ start và hiển thị:
+# Server will start and display:
 # INFO:     Uvicorn running on http://0.0.0.0:8000 (Press CTRL+C to quit)
 # INFO:     Started reloader process
 # INFO:     Started server process
@@ -216,9 +216,9 @@ uvicorn app.main:app --reload --host 0.0.0.0 --port 8000
 # INFO:     Application startup complete.
 ```
 
-**Kiểm tra server:**
+**Verify server:**
 
-- Mở browser và truy cập:
+- Open browser and visit:
   - API: http://localhost:8000
   - API Docs: http://localhost:8000/docs
   - Health Check: http://localhost:8000/api/v1/health
@@ -226,41 +226,41 @@ uvicorn app.main:app --reload --host 0.0.0.0 --port 8000
 **Test API:**
 
 ```bash
-# Trong terminal khác, test health endpoint
+# In another terminal, test health endpoint
 curl http://localhost:8000/api/v1/health
 
-# Hoặc dùng browser mở:
+# Or open in browser:
 # http://localhost:8000/api/v1/health
 ```
 
-## Development Workflow Hàng Ngày
+## Daily Development Workflow
 
-### Sáng - Bắt đầu làm việc
+### Morning - Start Working
 
 **1. Start Dependencies (Docker):**
 
 ```bash
-# Di chuyển vào folder local_dev
+# Navigate to local_dev folder
 cd local_dev
 
 # Start PostgreSQL
 docker-compose up -d postgres
 
-# Kiểm tra status
+# Check status
 docker-compose ps
 
-# Nếu container đã chạy rồi, có thể skip bước này
+# If containers are already running, you can skip this step
 ```
 
 **2. Activate Virtual Environment:**
 
 ```bash
-# Quay về root directory
+# Return to root directory
 cd ..
 
 # Activate venv
 source venv/bin/activate  # Linux/Mac
-# hoặc: venv\Scripts\activate  # Windows
+# or: venv\Scripts\activate  # Windows
 ```
 
 **3. Start Development Server:**
@@ -269,35 +269,35 @@ source venv/bin/activate  # Linux/Mac
 # Start server
 uvicorn app.main:app --reload --host 0.0.0.0 --port 8000
 
-# Giữ terminal này mở, server sẽ tự động reload khi code thay đổi
+# Keep this terminal open, server will automatically reload when code changes
 ```
 
-### Trong khi code
+### While Coding
 
-- Server đang chạy với `--reload` flag
-- Mọi thay đổi code sẽ tự động reload server
-- Xem logs trong terminal để debug
-- Test tại: http://localhost:8000/docs
+- Server is running with `--reload` flag
+- All code changes will automatically reload the server
+- View logs in terminal to debug
+- Test at: http://localhost:8000/docs
 
-### Tối - Kết thúc làm việc
+### Evening - End Working
 
 **1. Stop Development Server:**
 
 ```bash
-# Trong terminal đang chạy server, nhấn:
+# In terminal running server, press:
 Ctrl + C
 ```
 
 **2. Stop Dependencies (Optional):**
 
 ```bash
-# Di chuyển vào folder local_dev
+# Navigate to local_dev folder
 cd local_dev
 
-# Stop PostgreSQL (optional - có thể giữ chạy)
+# Stop PostgreSQL (optional - can keep running)
 docker-compose down
 
-# Hoặc chỉ stop mà không xóa volumes
+# Or just stop without deleting volumes
 docker-compose stop
 ```
 
@@ -305,47 +305,47 @@ docker-compose stop
 
 ### Access PostgreSQL Database
 
-**Cách 1: Dùng psql từ Docker**
+**Method 1: Use psql from Docker**
 
 ```bash
-# Di chuyển vào folder local_dev
+# Navigate to local_dev folder
 cd local_dev
 
-# Kết nối vào PostgreSQL
+# Connect to PostgreSQL
 docker-compose exec postgres psql -U postgres -d culi_db
 
-# Trong psql shell:
+# In psql shell:
 \dt              # List all tables
 \d users         # Describe users table
 SELECT * FROM users LIMIT 5;  # Query example
 \q               # Quit
 ```
 
-**Cách 2: Dùng psql từ local (nếu đã cài)**
+**Method 2: Use psql from local (if installed)**
 
 ```bash
-# Kết nối trực tiếp
+# Connect directly
 psql postgresql://postgres:postgres@localhost:5432/culi_db
 ```
 
 ### pgAdmin - Database GUI (Optional)
 
 ```bash
-# Di chuyển vào folder local_dev
+# Navigate to local_dev folder
 cd local_dev
 
-# Start pgAdmin với profile tools
+# Start pgAdmin with tools profile
 docker-compose --profile tools up -d pgadmin
 
-# Mở browser và truy cập:
+# Open browser and visit:
 # http://localhost:5050
 
 # Login:
 # Email: admin@culi.local
 # Password: admin
 
-# Add server trong pgAdmin:
-# Host: postgres (tên service trong docker-compose)
+# Add server in pgAdmin:
+# Host: postgres (service name in docker-compose)
 # Port: 5432
 # Database: culi_db
 # Username: postgres
@@ -354,20 +354,20 @@ docker-compose --profile tools up -d pgadmin
 
 ### Database Migrations
 
-**Tạo migration mới:**
+**Create new migration:**
 
 ```bash
-# Đảm bảo đã activate venv
+# Make sure venv is activated
 source venv/bin/activate
 
-# Tạo migration từ thay đổi models
+# Create migration from model changes
 alembic revision --autogenerate -m "describe your changes"
 
-# Migration file sẽ được tạo trong migrations/versions/
-# Kiểm tra và chỉnh sửa nếu cần
+# Migration file will be created in migrations/versions/
+# Review and edit if needed
 ```
 
-**Xem migration files:**
+**View migration files:**
 
 ```bash
 ls -la migrations/versions/
@@ -376,46 +376,46 @@ ls -la migrations/versions/
 **Apply migrations:**
 
 ```bash
-# Apply tất cả pending migrations
+# Apply all pending migrations
 alembic upgrade head
 
-# Apply migration cụ thể
+# Apply specific migration
 alembic upgrade <revision_id>
 
-# Xem migration history
+# View migration history
 alembic history
 ```
 
 **Rollback migration:**
 
 ```bash
-# Rollback 1 bước
+# Rollback one step
 alembic downgrade -1
 
-# Rollback về revision cụ thể
+# Rollback to specific revision
 alembic downgrade <revision_id>
 
-# Rollback tất cả
+# Rollback all
 alembic downgrade base
 ```
 
-**Reset Database (XÓA TẤT CẢ DATA):**
+**Reset Database (DELETE ALL DATA):**
 
 ```bash
-# Bước 1: Stop và xóa PostgreSQL container + volumes
+# Step 1: Stop and remove PostgreSQL container + volumes
 cd local_dev
 docker-compose down -v postgres
 
-# Bước 2: Start lại PostgreSQL
+# Step 2: Start PostgreSQL again
 docker-compose up -d postgres
 
-# Bước 3: Đợi PostgreSQL sẵn sàng (khoảng 3-5 giây)
+# Step 3: Wait for PostgreSQL to be ready (about 3-5 seconds)
 sleep 5
 
-# Bước 4: Kiểm tra connection
+# Step 4: Check connection
 docker-compose exec postgres pg_isready -U postgres
 
-# Bước 5: Chạy lại migrations
+# Step 5: Run migrations again
 cd ..
 alembic upgrade head
 ```
@@ -425,40 +425,40 @@ alembic upgrade head
 ### Run Tests
 
 ```bash
-# Đảm bảo đã activate venv
+# Make sure venv is activated
 source venv/bin/activate
 
-# Chạy tất cả tests
+# Run all tests
 pytest
 
-# Chạy test với verbose output
+# Run tests with verbose output
 pytest -v
 
-# Chạy test file cụ thể
+# Run specific test file
 pytest tests/test_api/test_auth.py
 
-# Chạy test function cụ thể
+# Run specific test function
 pytest tests/test_api/test_auth.py::test_register
 
-# Chạy test với coverage
+# Run tests with coverage
 pytest --cov=app --cov-report=html
 
-# Xem coverage report
-# Mở file: htmlcov/index.html trong browser
+# View coverage report
+# Open file: htmlcov/index.html in browser
 ```
 
 ### Test Database (Separate from Dev)
 
-Nếu cần test database riêng:
+If you need a separate test database:
 
 ```bash
-# Tạo test database trong PostgreSQL
+# Create test database in PostgreSQL
 docker-compose -f local_dev/docker-compose.yml exec postgres psql -U postgres -c "CREATE DATABASE culi_test_db;"
 
-# Update .env với test database URL
+# Update .env with test database URL
 # DATABASE_URL=postgresql://postgres:postgres@localhost:5432/culi_test_db
 
-# Chạy migrations trên test DB
+# Run migrations on test DB
 alembic upgrade head
 ```
 
@@ -467,79 +467,79 @@ alembic upgrade head
 ### Format Code
 
 ```bash
-# Đảm bảo đã activate venv
+# Make sure venv is activated
 source venv/bin/activate
 
-# Format code với black
+# Format code with black
 black app/ tests/
 
-# Check format mà không thay đổi
+# Check format without changing
 black --check app/ tests/
 ```
 
 ### Lint Code
 
 ```bash
-# Lint với ruff
+# Lint with ruff
 ruff check app/ tests/
 
-# Auto-fix các lỗi có thể fix được
+# Auto-fix fixable errors
 ruff check --fix app/ tests/
 ```
 
 ### Type Checking
 
 ```bash
-# Type check với mypy
+# Type check with mypy
 mypy app/
 
-# Nếu có errors, fix từng file
+# If there are errors, fix each file
 ```
 
 ## Troubleshooting
 
-### PostgreSQL không kết nối được
+### PostgreSQL Cannot Connect
 
-**1. Kiểm tra container đang chạy:**
+**1. Check container is running:**
 
 ```bash
 cd local_dev
 docker-compose ps
 ```
 
-**Nếu container không chạy:**
+**If container is not running:**
 
 ```bash
-# Start lại
+# Start again
 docker-compose up -d postgres
 
-# Xem logs
+# View logs
 docker-compose logs postgres
 ```
 
-**2. Kiểm tra port 5432:**
+**2. Check port 5432:**
 
 ```bash
 # Linux/Mac
 lsof -i :5432
 
-# Nếu có process khác đang dùng port
-# Kill process hoặc đổi port trong docker-compose.yml
+# If another process is using the port
+# Kill process or change port in docker-compose.yml
 ```
 
 **3. Test connection:**
 
 ```bash
-# Test từ Docker
+# Test from Docker
 docker-compose exec postgres pg_isready -U postgres
 
-# Test từ local
+# Test from local
 psql postgresql://postgres:postgres@localhost:5432/culi_db -c "SELECT 1;"
 ```
 
-### Port 8000 đã được sử dụng
+### Port 8000 Already in Use
 
-**1. Tìm process đang dùng port:**
+**1. Find process using port:**
 
 ```bash
 # Linux/Mac
@@ -549,15 +549,15 @@ lsof -i :8000
 kill -9 <PID>
 ```
 
-**2. Hoặc đổi port:**
+**2. Or change port:**
 
 ```bash
 uvicorn app.main:app --reload --port 8001
 ```
 
-### Migration errors
+### Migration Errors
 
-**1. Xem migration history:**
+**1. View migration history:**
 
 ```bash
 alembic history
@@ -566,14 +566,14 @@ alembic history
 **2. Check current revision:**
 
 ```bash
-# Trong database
+# In database
 docker-compose -f local_dev/docker-compose.yml exec postgres psql -U postgres -d culi_db -c "SELECT * FROM alembic_version;"
 ```
 
-**3. Reset và chạy lại:**
+**3. Reset and run again:**
 
 ```bash
-# Xóa tất cả migrations và reset database
+# Delete all migrations and reset database
 cd local_dev
 docker-compose down -v postgres
 docker-compose up -d postgres
@@ -582,86 +582,86 @@ cd ..
 alembic upgrade head
 ```
 
-### Import errors / Module not found
+### Import Errors / Module Not Found
 
-**1. Kiểm tra venv đã activate:**
+**1. Check venv is activated:**
 
 ```bash
 which python  # Should show venv path
-# hoặc
+# or
 where python  # Windows
 ```
 
 **2. Reinstall dependencies:**
 
 ```bash
-# Deactivate venv trước
+# Deactivate venv first
 deactivate
 
-# Xóa venv cũ (nếu cần)
+# Delete old venv (if needed)
 rm -rf venv  # Linux/Mac
-# hoặc: rmdir /s venv  # Windows
+# or: rmdir /s venv  # Windows
 
-# Tạo lại venv
+# Recreate venv
 python3 -m venv venv
 
 # Activate
 source venv/bin/activate  # Linux/Mac
 
-# Install lại
+# Reinstall
 pip install --upgrade pip
 pip install -r requirements.txt
 ```
 
-### Environment variables không được load
+### Environment Variables Not Loaded
 
-**1. Kiểm tra file .env tồn tại:**
+**1. Check .env file exists:**
 
 ```bash
 ls -la .env
 ```
 
-**2. Kiểm tra format .env:**
+**2. Check .env format:**
 
 ```bash
-# Không có spaces quanh dấu =
-# Đúng: KEY=value
-# Sai:  KEY = value
+# No spaces around =
+# Correct: KEY=value
+# Wrong:  KEY = value
 
-# Không có quotes (trừ khi value có spaces)
-# Đúng: KEY=value
-# Sai:  KEY="value"
+# No quotes (unless value has spaces)
+# Correct: KEY=value
+# Wrong:  KEY="value"
 ```
 
 **3. Reload environment:**
 
 ```bash
 # Stop server (Ctrl+C)
-# Start lại server
+# Start server again
 uvicorn app.main:app --reload
 ```
 
-### Virtual environment issues
+### Virtual Environment Issues
 
-**1. Venv không activate:**
+**1. Venv won't activate:**
 
 ```bash
-# Kiểm tra file activate tồn tại
+# Check activate file exists
 ls -la venv/bin/activate  # Linux/Mac
-# hoặc
+# or
 dir venv\Scripts\activate  # Windows
 
-# Nếu không có, tạo lại venv
+# If not, recreate venv
 python3 -m venv venv
 ```
 
-**2. Python version không đúng:**
+**2. Python version incorrect:**
 
 ```bash
-# Kiểm tra version
+# Check version
 python3 --version  # Should be 3.10+
 
-# Nếu không đúng, cài Python 3.10+ trước
+# If incorrect, install Python 3.10+ first
 ```
 
 ## Project Structure
@@ -749,30 +749,31 @@ ruff check app/ tests/
 
 ## Tips & Best Practices
 
-1. **Giữ dependencies chạy suốt ngày** - Chỉ stop khi không dùng nữa để tránh phải setup lại
+1. **Keep dependencies running all day** - Only stop when not in use to avoid having to set up again
 
-2. **Dùng terminal riêng cho server** - Dễ theo dõi logs, không bị lẫn với commands khác
+2. **Use separate terminal for server** - Easy to track logs, not mixed with other commands
 
-3. **Auto-reload enabled** - Server tự động reload khi code thay đổi, không cần restart thủ công
+3. **Auto-reload enabled** - Server automatically reloads when code changes, no manual restart needed
 
-4. **IDE Integration** - Setup Python interpreter trong IDE trỏ đến `venv/bin/python` để có autocomplete và debugging
+4. **IDE Integration** - Setup Python interpreter in IDE to point to `venv/bin/python` for autocomplete and debugging
 
-5. **Debugging** - Sử dụng IDE debugger (VS Code, PyCharm) để debug local Python process
+5. **Debugging** - Use IDE debugger (VS Code, PyCharm) to debug local Python process
 
-6. **Environment Variables** - Không commit file `.env`, giữ các secrets local
+6. **Environment Variables** - Don't commit `.env` file, keep secrets local
 
-7. **Migrations** - Luôn review migration files trước khi apply, đặc biệt là auto-generated
+7. **Migrations** - Always review migration files before applying, especially auto-generated ones
 
 ## Next Steps
 
-- Explore API docs tại http://localhost:8000/docs khi server đang chạy
-- Đọc [Architecture Documentation](../docs/ARCHITECTURE.md) để hiểu thiết kế hệ thống
-- Xem [Main README](../README.md) để tổng quan về project
+- Explore API docs at http://localhost:8000/docs when server is running
+- Read [Architecture Documentation](../docs/ARCHITECTURE_en.md) to understand system design
+- See [Main README](../README_en.md) for project overview
 
 ## Getting Help
 
-Nếu gặp vấn đề:
-1. Kiểm tra phần Troubleshooting ở trên
-2. Xem logs: `docker-compose logs` hoặc server logs trong terminal
-3. Kiểm tra file `.env` và database connection
-4. Đảm bảo đã follow đúng các bước setup
+If you encounter issues:
+1. Check the Troubleshooting section above
+2. View logs: `docker-compose logs` or server logs in terminal
+3. Check `.env` file and database connection
+4. Make sure you followed the setup steps correctly
+
