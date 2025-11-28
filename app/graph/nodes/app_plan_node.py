@@ -54,8 +54,15 @@ def app_plan_node(state: Dict[str, Any]) -> Dict[str, Any]:
         app_data=app_data_str,
     )
     
-    # Get LLM response with structured output
-    llm = get_llm(temperature=0.3)
+    # Get LLM response with structured output - use optimized model for plan generation
+    from app.core.llm_router import get_model_for_app_plan
+    from app.core.config import settings
+    model = get_model_for_app_plan(state)
+    llm = get_llm(
+        temperature=0.3,
+        model=model,
+        max_tokens=settings.llm_max_tokens_plan
+    )
     
     try:
         response = llm.invoke([

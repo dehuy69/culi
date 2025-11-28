@@ -71,8 +71,15 @@ def answer_node(state: Dict[str, Any]) -> Dict[str, Any]:
         plan=plan_str,
     )
     
-    # Get LLM response
-    llm = get_llm(temperature=0.7)
+    # Get LLM response - use optimized model for answer generation
+    from app.core.llm_router import get_model_for_answer
+    from app.core.config import settings
+    model = get_model_for_answer(state)
+    llm = get_llm(
+        temperature=0.7,
+        model=model,
+        max_tokens=settings.llm_max_tokens_answer
+    )
     
     try:
         response = llm.invoke([

@@ -55,4 +55,10 @@ class MessageRepository:
         return db.query(Message).filter(
             Message.conversation_id == conversation_id
         ).order_by(Message.created_at.desc()).limit(limit).all()
+    
+    @staticmethod
+    def delete(db: Session, message: Message) -> None:
+        """Delete message."""
+        db.delete(message)
+        db.commit()
 

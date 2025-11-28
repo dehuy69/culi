@@ -43,10 +43,12 @@ def intent_router_node(state: Dict[str, Any]) -> Dict[str, Any]:
     else:
         prompt_template = prompt_path.read_text()
     
-    # Build context from messages
+    # Build context from messages - use configurable history length
+    from app.core.config import settings
+    history_length = settings.chat_history_length
     chat_context = "\n".join([
         f"{msg.get('role', 'user')}: {msg.get('content', '')}"
-        for msg in messages[-3:]  # Last 3 messages only to reduce prompt size
+        for msg in messages[-history_length:]  # Use configurable history length
     ]) if messages else "No previous conversation."
     
     # Build app context
@@ -64,8 +66,15 @@ def intent_router_node(state: Dict[str, Any]) -> Dict[str, Any]:
         app_available=str(connected_app is not None)
     )
     
-    # Get LLM response
-    llm = get_llm(temperature=0.1)
+    # Get LLM response - use optimized model for classification
+    from app.core.llm_router import get_model_for_intent_router
+    from app.core.config import settings
+    model = get_model_for_intent_router(state)
+    llm = get_llm(
+        temperature=0.1,
+        model=model,
+        max_tokens=settings.llm_max_tokens_intent
+    )
     
     try:
         # Request JSON format

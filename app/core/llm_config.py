@@ -7,12 +7,14 @@ from app.core.logging import get_logger
 logger = get_logger(__name__)
 
 
-def get_llm(temperature: Optional[float] = None) -> ChatOpenAI:
+def get_llm(temperature: Optional[float] = None, model: Optional[str] = None, max_tokens: Optional[int] = None) -> ChatOpenAI:
     """
     Create and return a ChatOpenAI instance configured for OpenRouter.
     
     Args:
         temperature: Override default temperature setting
+        model: Override default model (e.g., "openai/gpt-3.5-turbo" for simple tasks)
+        max_tokens: Override default max_tokens setting
         
     Returns:
         Configured ChatOpenAI instance
@@ -62,10 +64,13 @@ def get_llm(temperature: Optional[float] = None) -> ChatOpenAI:
             timeout=60.0,
         )
         
+        model_name = model or settings.llm_model
+        max_tokens_value = max_tokens or settings.llm_max_tokens
+        
         return ChatOpenAI(
-            model=settings.llm_model,
+            model=model_name,
             temperature=temperature or settings.llm_temperature,
-            max_tokens=settings.llm_max_tokens,  # Limit tokens to avoid 402 errors
+            max_tokens=max_tokens_value,
             openai_api_key=api_key,
             openai_api_base=settings.openrouter_base_url,
             http_client=http_client,
@@ -75,10 +80,13 @@ def get_llm(temperature: Optional[float] = None) -> ChatOpenAI:
         # Fallback: use default client creation
         # Headers will need to be set via environment or other means
         logger.warning("httpx not available, using default client (headers may not be set)")
+        model_name = model or settings.llm_model
+        max_tokens_value = max_tokens or settings.llm_max_tokens
+        
         return ChatOpenAI(
-            model=settings.llm_model,
+            model=model_name,
             temperature=temperature or settings.llm_temperature,
-            max_tokens=settings.llm_max_tokens,  # Limit tokens to avoid 402 errors
+            max_tokens=max_tokens_value,
             openai_api_key=api_key,
             openai_api_base=settings.openrouter_base_url,
         )
