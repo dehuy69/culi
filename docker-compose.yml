@@ -29,6 +29,13 @@ services:
       - culi-network
     env_file:
       - .env
+    # Healthcheck to ensure migrations completed and server is ready
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/api/v1/health"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
 
   postgres:
     image: postgres:15-alpine
