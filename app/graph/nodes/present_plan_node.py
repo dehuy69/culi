@@ -36,9 +36,19 @@ def present_plan_node(state: Dict[str, Any]) -> Dict[str, Any]:
         presentation += f"\n{i}. **{step.get('action', 'Unknown')}** - {step.get('description', 'No description')}"
     
     state["answer"] = presentation
-    state["plan_approved"] = False  # Wait for user approval
     
-    logger.info(f"Plan presented: {len(steps)} steps, waiting for approval")
+    # Plan approval logic
+    # TODO: Implement checkpoint mechanism for proper user approval with pause/resume
+    # For now: auto-approve plans (can be configured via environment variable)
+    from app.core.config import settings
+    auto_approve_plans = getattr(settings, 'auto_approve_plans', True)  # Default: True for development
+    
+    if auto_approve_plans:
+        state["plan_approved"] = True
+        logger.info(f"Plan auto-approved: {len(steps)} steps (auto_approve_plans={auto_approve_plans})")
+    else:
+        state["plan_approved"] = False
+        logger.info(f"Plan requires manual approval: {len(steps)} steps (checkpoint mechanism needed)")
     
     return state
 

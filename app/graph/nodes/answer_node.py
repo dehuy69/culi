@@ -35,7 +35,33 @@ def answer_node(state: Dict[str, Any]) -> Dict[str, Any]:
     prompt_template = prompt_path.read_text()
     
     # Format data for prompt - limit size to avoid token limit
-    if data_to_use:
+    # Check if there's an error in app_data
+    has_error = False
+    error_message = None
+    if data_to_use and isinstance(data_to_use, dict) and "error" in data_to_use:
+        has_error = True
+        error_message = data_to_use.get("error", "Unknown error")
+        # Still include data if available, but note the error
+        if len(data_to_use) > 1:
+            # Has data but also has error
+            limited_data = {k: v for k, v in data_to_use.items() if k != "error"}
+            if isinstance(limited_data, dict):
+                # If data has a list, limit it to first 5 items
+                final_data = {}
+                for key, value in limited_data.items():
+                    if isinstance(value, list) and len(value) > 5:
+                        final_data[key] = value[:5] + [f"... (and {len(value) - 5} more items)"]
+                    else:
+                        final_data[key] = value
+                app_data_str = json.dumps(final_data, indent=2, ensure_ascii=False)
+            else:
+                app_data_str = json.dumps(limited_data, indent=2, ensure_ascii=False)
+            # Add error note
+            app_data_str = f"⚠️ Lỗi khi đọc dữ liệu: {error_message}\n\nDữ liệu có sẵn:\n{app_data_str}"
+        else:
+            # Only error, no data
+            app_data_str = f"⚠️ Lỗi khi đọc dữ liệu: {error_message}"
+    elif data_to_use:
         # Limit app_data size to avoid exceeding token limits
         if isinstance(data_to_use, dict):
             # If data has a list, limit it to first 5 items
@@ -83,18 +109,31 @@ def answer_node(state: Dict[str, Any]) -> Dict[str, Any]:
     
     try:
         response = llm.invoke([
-            {"role": "system", "content": "You are Culi, a helpful AI accounting assistant for Vietnamese small businesses. Respond in Vietnamese."},
+            {"role": "system", "content": "You are Culi, a helpful AI accounting assistant for Vietnamese small businesses. Respond in Vietnamese. If there's an error reading data from the app, explain it clearly to the user and suggest what they can do."},
             {"role": "user", "content": prompt}
         ])
         
         answer = response.content.strip()
+        
+        # Ensure answer is not empty
+        if not answer:
+            if has_error and error_message:
+                answer = f"Xin lỗi, không thể đọc dữ liệu từ ứng dụng. Lỗi: {error_message}. Vui lòng kiểm tra kết nối hoặc thử lại sau."
+            else:
+                answer = "Xin lỗi, không thể tạo phản hồi. Vui lòng thử lại."
+        
         state["answer"] = answer
         
         logger.info("Answer generated successfully")
         
     except Exception as e:
-        logger.error(f"Error generating answer: {str(e)}")
-        state["answer"] = f"Xin lỗi, đã có lỗi khi tạo phản hồi: {str(e)}"
+        logger.error(f"Error generating answer: {str(e)}", exc_info=True)
+        # Create a helpful error message
+        if has_error and error_message:
+            state["answer"] = f"Xin lỗi, đã xảy ra lỗi khi xử lý yêu cầu của bạn. Lỗi khi đọc dữ liệu: {error_message}. Vui lòng kiểm tra kết nối hoặc thử lại sau."
+        else:
+            state["answer"] = f"Xin lỗi, đã có lỗi khi tạo phản hồi: {str(e)}"
+        state["error"] = str(e)
     
     return state
 

@@ -1,7 +1,10 @@
 """Chat router."""
 from typing import Optional, List
 from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi.responses import StreamingResponse
 from sqlalchemy.orm import Session
+from datetime import datetime
+import json
 from app.db.session import get_db
 from app.models.user import User
 from app.services.chat_service import ChatService
@@ -58,6 +61,73 @@ def list_conversations(
     return ConversationListResponse(
         conversations=[ConversationOut.from_orm(c) for c in conversations],
         total=len(conversations)
+    )
+
+
+@router.post("/stream")
+def stream_message(
+    workspace_id: int,
+    chat_request: ChatRequest,
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db)
+):
+    """Stream chat message processing with Server-Sent Events (SSE)."""
+    from app.core.logging import get_logger
+    logger = get_logger(__name__)
+    
+    def generate():
+        try:
+            # Stream events from ChatService
+            for event in ChatService.stream_message(
+                db,
+                current_user,
+                workspace_id,
+                chat_request.conversation_id,
+                chat_request.message
+            ):
+                # Add timestamp to event
+                if "data" in event and "timestamp" in event["data"]:
+                    event["data"]["timestamp"] = datetime.utcnow().isoformat()
+                elif "data" in event:
+                    event["data"]["timestamp"] = datetime.utcnow().isoformat()
+                
+                # Format as SSE
+                yield f"data: {json.dumps(event)}\n\n"
+            
+        except ValueError as e:
+            logger.error(f"ValueError in stream: {str(e)}", exc_info=True)
+            error_event = {
+                "event": "error",
+                "data": {
+                    "error": str(e),
+                    "type": "validation",
+                    "timestamp": datetime.utcnow().isoformat()
+                }
+            }
+            yield f"data: {json.dumps(error_event)}\n\n"
+        except Exception as e:
+            import traceback
+            error_detail = str(e) if str(e) else f"{type(e).__name__}: {repr(e)}"
+            error_traceback = traceback.format_exc()
+            logger.error(f"Unexpected error in stream: {error_detail}\n{error_traceback}", exc_info=True)
+            error_event = {
+                "event": "error",
+                "data": {
+                    "error": f"Internal server error: {error_detail}",
+                    "type": "server",
+                    "timestamp": datetime.utcnow().isoformat()
+                }
+            }
+            yield f"data: {json.dumps(error_event)}\n\n"
+    
+    return StreamingResponse(
+        generate(),
+        media_type="text/event-stream",
+        headers={
+            "Cache-Control": "no-cache",
+            "Connection": "keep-alive",
+            "X-Accel-Buffering": "no",  # Disable nginx buffering
+        }
     )
 
 

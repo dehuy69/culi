@@ -225,4 +225,240 @@ class ChatService:
                 )
             
             raise Exception(f"Failed to process message: {error_msg}")
+    
+    @staticmethod
+    def stream_message(
+        db: Session,
+        user: User,
+        workspace_id: int,
+        conversation_id: Optional[int],
+        user_input: str
+    ):
+        """
+        Stream chat message processing through LangGraph.
+        Yields events as they occur during graph execution.
+        """
+        # Verify workspace access
+        workspace = WorkspaceRepository.get_by_id(db, workspace_id)
+        if not workspace or workspace.owner_id != user.id:
+            raise ValueError("Workspace not found or access denied")
+        
+        # Prepare state
+        state, conversation_id = ChatService.prepare_state(
+            db, user, workspace_id, conversation_id, user_input
+        )
+        
+        # Save user message
+        MessageRepository.create(
+            db,
+            conversation_id=conversation_id,
+            sender=MessageSender.USER,
+            content=user_input
+        )
+        
+        # Get graph
+        graph = get_graph()
+        
+        try:
+            # Stream graph execution
+            final_state = None
+            for event in graph.stream(state):
+                # Process each event (event is a dict: {node_name: state_update})
+                for node_name, state_update in event.items():
+                    # state_update is the updated state after node execution
+                    current_state = state_update if isinstance(state_update, dict) else {}
+                    
+                    # Emit node start event
+                    yield {
+                        "event": "node_start",
+                        "data": {
+                            "node": node_name,
+                            "timestamp": None  # Will be set by router
+                        }
+                    }
+                    
+                    # Emit specific events based on node and state
+                    if node_name == "intent_router":
+                        intent = current_state.get("intent", "")
+                        if intent:
+                            yield {
+                                "event": "intent",
+                                "data": {
+                                    "intent": intent,
+                                    "node": node_name
+                                }
+                            }
+                    
+                    elif node_name == "app_plan":
+                        plan = current_state.get("plan")
+                        if plan:
+                            yield {
+                                "event": "plan",
+                                "data": {
+                                    "plan": plan,
+                                    "node": node_name
+                                }
+                            }
+                    
+                    elif node_name == "execute_plan":
+                        step_results = current_state.get("step_results", [])
+                        current_step_index = current_state.get("current_step_index", 0)
+                        plan = current_state.get("plan", {})
+                        steps = plan.get("steps", [])
+                        
+                        if step_results:
+                            latest_step = step_results[-1]
+                            yield {
+                                "event": "step",
+                                "data": {
+                                    "step": latest_step,
+                                    "current_step": current_step_index,
+                                    "total_steps": len(steps),
+                                    "node": node_name
+                                }
+                            }
+                    
+                    elif node_name == "web_search":
+                        web_results = current_state.get("web_results", [])
+                        if web_results:
+                            yield {
+                                "event": "web_search",
+                                "data": {
+                                    "results_count": len(web_results),
+                                    "node": node_name
+                                }
+                            }
+                    
+                    elif node_name == "app_read":
+                        app_data = current_state.get("app_data", {})
+                        if app_data:
+                            yield {
+                                "event": "app_data",
+                                "data": {
+                                    "has_data": bool(app_data),
+                                    "node": node_name
+                                }
+                            }
+                    
+                    elif node_name == "answer":
+                        answer = current_state.get("answer", "")
+                        error = current_state.get("error")
+                        
+                        # Always emit answer event when answer node completes
+                        # This ensures frontend receives the answer even if it's empty (will be handled in done event)
+                        if answer:
+                            yield {
+                                "event": "answer",
+                                "data": {
+                                    "content": answer,
+                                    "node": node_name
+                                }
+                            }
+                        elif error:
+                            # If answer node hasn't generated answer yet but there's an error,
+                            # emit error info so frontend can show it
+                            yield {
+                                "event": "answer",
+                                "data": {
+                                    "content": f"Đang xử lý lỗi: {error}",
+                                    "node": node_name,
+                                    "has_error": True
+                                }
+                            }
+                        else:
+                            # Even if answer is empty, emit event so frontend knows answer node completed
+                            # The done event will provide the final answer
+                            yield {
+                                "event": "answer",
+                                "data": {
+                                    "content": "",
+                                    "node": node_name,
+                                    "pending": True
+                                }
+                            }
+                    
+                    # Emit node end event
+                    yield {
+                        "event": "node_end",
+                        "data": {
+                            "node": node_name,
+                            "timestamp": None
+                        }
+                    }
+                    
+                    # Keep track of final state
+                    final_state = current_state
+            
+            # Save assistant message if we have an answer
+            if final_state:
+                answer = final_state.get("answer", "")
+                error = final_state.get("error")
+                
+                # If no answer but there's an error, create error message
+                if not answer and error:
+                    answer = f"Xin lỗi, đã xảy ra lỗi: {error}"
+                    final_state["answer"] = answer
+                
+                # If still no answer, create default message
+                if not answer:
+                    answer = "Xin lỗi, không thể tạo phản hồi. Vui lòng thử lại."
+                    final_state["answer"] = answer
+                
+                # Always save message (even if it's an error message)
+                MessageRepository.create(
+                    db,
+                    conversation_id=conversation_id,
+                    sender=MessageSender.ASSISTANT,
+                    content=answer,
+                    metadata={
+                        "intent": final_state.get("intent"),
+                        "plan": final_state.get("plan"),
+                        "step_results": final_state.get("step_results"),
+                        "error": error,
+                    }
+                )
+                
+                # Always emit completion event (even if answer is error message)
+                yield {
+                    "event": "done",
+                    "data": {
+                        "conversation_id": conversation_id,
+                        "answer": answer,
+                        "intent": final_state.get("intent"),
+                        "plan": final_state.get("plan"),
+                        "error": error,
+                    }
+                }
+            
+        except ValueError as e:
+            logger.error(f"Configuration error in stream: {str(e)}", exc_info=True)
+            yield {
+                "event": "error",
+                "data": {
+                    "error": f"Configuration error: {str(e)}",
+                    "type": "configuration"
+                }
+            }
+        except Exception as e:
+            error_msg = str(e) if str(e) else f"{type(e).__name__}: {repr(e)}"
+            logger.error(f"Error streaming message: {error_msg}", exc_info=True)
+            
+            # Handle specific error cases
+            if "api_key" in error_msg.lower() or "OPENAI_API_KEY" in error_msg:
+                error_msg = "API key chưa được cấu hình. Vui lòng kiểm tra OPENROUTER_API_KEY trong file .env"
+            elif "402" in error_msg or "credits" in error_msg.lower() or "max_tokens" in error_msg.lower():
+                error_msg = (
+                    "OpenRouter API key của bạn không đủ credits để xử lý request này. "
+                    "Vui lòng: 1) Tăng monthly limit tại https://openrouter.ai/settings/keys, "
+                    "hoặc 2) Giảm độ dài câu hỏi. "
+                    f"Chi tiết: {error_msg}"
+                )
+            
+            yield {
+                "event": "error",
+                "data": {
+                    "error": f"Failed to process message: {error_msg}",
+                    "type": "processing"
+                }
+            }
 

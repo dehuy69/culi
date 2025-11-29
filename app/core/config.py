@@ -58,6 +58,9 @@ class Settings(BaseSettings):
     debug: bool = True
     app_name: str = "culi-backend"
     app_version: str = "0.1.0"
+    
+    # Plan Approval Configuration
+    auto_approve_plans: bool = True  # Auto-approve plans for development/testing. Set to False when checkpoint mechanism is implemented.
 
     class Config:
         env_file = ".env"
