@@ -32,11 +32,15 @@ class Settings(BaseSettings):
     llm_model_answer: str = "openai/gpt-4o-mini-2024-07-18"  # Good quality, cheaper than GPT-4, great for Vietnamese
     llm_model_answer_simple: str = "meta-llama/llama-3.1-8b-instruct"  # Very cheap for simple general_qa
     
+    # Web search: LLM with built-in web search capability
+    llm_model_web_search: str = "openai/gpt-4o-mini-search-preview"  # GPT-4o-mini with web search capability
+    
     # Token limits - increased for better responses
     llm_max_tokens: int = 2000  # Default max tokens
     llm_max_tokens_intent: int = 200  # Intent classification needs less tokens
     llm_max_tokens_plan: int = 1000  # Plan generation
     llm_max_tokens_answer: int = 2000  # Answer generation needs more tokens
+    llm_max_tokens_web_search: int = 2000  # Web search needs more tokens for comprehensive results
     
     # Chat History Configuration
     chat_history_length: int = 10  # Number of messages to include in context (increased from 3)

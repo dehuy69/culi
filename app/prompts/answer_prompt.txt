@@ -16,7 +16,26 @@ Execution results (if applicable): {step_results}
 
 Previous plan (if applicable): {plan}
 
-Provide a clear, concise answer. If you used tools or executed a plan, explain what was done. Format your response in Markdown for better readability.
+Provide a clear, concise answer. If you used tools or executed a plan, explain what was done. 
+
+IMPORTANT: Format your response in Markdown for better readability. Use the following formatting:
+- Use ## for section headers (e.g., ## Yêu cầu sổ sách kế toán)
+- Use ### for subsection headers
+- Use **bold** for emphasis on important terms
+- Use bullet points (-) or numbered lists (1.) for lists
+- Use tables when presenting structured data
+- Use code blocks for technical information if needed
+- Use > for important notes or warnings
 
 If data is presented, format it nicely in tables or lists. If there were errors, explain them clearly and suggest alternatives.
+
+Example format:
+## Tiêu đề chính
+
+### Tiêu đề phụ
+
+- **Điểm quan trọng 1**: Mô tả
+- **Điểm quan trọng 2**: Mô tả
+
+> Lưu ý: Thông tin quan trọng
 

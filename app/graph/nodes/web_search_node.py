@@ -38,10 +38,23 @@ def web_search_node(state: Dict[str, Any]) -> Dict[str, Any]:
         
         state["web_results"] = results
         
-        # Summarize results for kb_context
+        # Build kb_context from results
         if results:
-            summaries = [f"{r.get('title', '')}: {r.get('snippet', '')}" for r in results[:5]]
-            state["kb_context"] = "\n\n".join(summaries)
+            context_parts = []
+            for r in results[:5]:  # Use top 5 results
+                title = r.get("title", "")
+                snippet = r.get("snippet", "")
+                full_content = r.get("full_content", "")
+                link = r.get("link", "")
+                
+                # Prefer full_content if available, otherwise use snippet
+                if full_content:
+                    context_parts.append(f"**{title}** ({link}):\n{full_content}")
+                else:
+                    context_parts.append(f"**{title}** ({link}): {snippet}")
+            
+            state["kb_context"] = "\n\n---\n\n".join(context_parts)
+            logger.info(f"Built kb_context with {len(context_parts)} results, total length: {len(state['kb_context'])}")
         else:
             state["kb_context"] = "No web search results found."
         

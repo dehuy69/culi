@@ -83,7 +83,7 @@ def build_graph() -> StateGraph:
     # Add nodes
     workflow.add_node("intent_router", intent_router_node)  # New intent router
     workflow.add_node("context", context_node)
-    workflow.add_node("web_search", web_search_node)
+    workflow.add_node("web_search", web_search_node)  # Use Google Custom Search API
     workflow.add_node("app_read", app_read_node)  # Generic app read node
     workflow.add_node("app_plan", app_plan_node)  # New app plan node
     workflow.add_node("present_plan", present_plan_node)
