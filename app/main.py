@@ -3,7 +3,7 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from app.core.config import settings
 from app.core.logging import setup_logging
-from app.api.v1 import auth_router, health_router, workspace_router, chat_router, mcp_router, app_connection_router, connected_app_router
+from app.api.v1 import auth_router, health_router, workspace_router, chat_router, mcp_router, connected_app_router
 
 # Setup logging
 setup_logging()
@@ -30,8 +30,7 @@ app.include_router(health_router.router, prefix="/api/v1")
 app.include_router(workspace_router.router, prefix="/api/v1")
 app.include_router(chat_router.router, prefix="/api/v1")
 app.include_router(mcp_router.router, prefix="/api/v1")  # DEPRECATED: use connected_app_router
-app.include_router(app_connection_router.router, prefix="/api/v1")  # DEPRECATED: use connected_app_router
-app.include_router(connected_app_router.router, prefix="/api/v1")  # NEW: connected apps API
+app.include_router(connected_app_router.router, prefix="/api/v1")  # Connected apps API
 
 
 # Import domain apps to register adapters
